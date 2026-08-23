@@ -6,17 +6,22 @@
                     <router-link to="/" class="logo" title="RATINO">
                         <img src="/img/misc/logo.png" alt="RATINO">
                     </router-link>
-                    <div v-if="!store.user" class="right ml-auto">
-                        <button class="btn btn-login" @click="openAuth('login')">{{ $t('general.auth.login') }}</button>
-                        <button class="btn btn-register" @click="openAuth('register')">{{ $t('general.auth.register') }}</button>
-                    </div>
-                    <div v-else class="right ml-auto">
+
+                    <!-- Center Vault & Chips Button -->
+                    <div class="header-center" v-if="store.user">
                         <div class="wallet clickable-wallet" v-if="store.currencies[store.currency]" @click="open('Wallet')" title="Open Vault & Weekly Drops">
                             <i class="fas fa-wallet wallet-icon mr-1"></i>
                             <unit :to="store.currency" :value="store.currencies[store.currency].balance.real"></unit>
                             <span class="wallet-currency">{{ store.currencies[store.currency].name }}</span>
                             <span class="wallet-add-badge"><i class="fas fa-plus"></i></span>
                         </div>
+                    </div>
+
+                    <div v-if="!store.user" class="right ml-auto">
+                        <button class="btn btn-login" @click="openAuth('login')">{{ $t('general.auth.login') }}</button>
+                        <button class="btn btn-register" @click="openAuth('register')">{{ $t('general.auth.register') }}</button>
+                    </div>
+                    <div v-else class="right">
                         <div class="action feature-buttons">
                             <i class="fas fa-users" title="Rooms / Play with Friends" @click="open('Room')"></i>
                             <i class="fas fa-user-friends" title="Friends & Social" @click="open('Friends')"></i>
@@ -126,19 +131,19 @@ header {
             }
         }
 
-        .right {
+        .header-center {
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            margin: 0 auto;
 
             .wallet {
                 display: flex;
                 align-items: center;
                 gap: 6px;
-                margin-right: 8px;
                 font-weight: 700;
                 background: rgba(255, 255, 255, 0.06);
-                padding: 6px 14px;
+                padding: 6px 16px;
                 border-radius: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 cursor: pointer;
@@ -174,6 +179,13 @@ header {
                     font-size: 0.65em;
                 }
             }
+        }
+
+        .right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
 
             .feature-buttons i {
                 margin: 0 6px;

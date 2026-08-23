@@ -99,14 +99,15 @@ export default {
             });
 
             this.createGameInstance(this.$route.params.id, ref);
+            bus.emit('game:wired', ref);
         },
         awaitRef(attempts = 0) {
             if (this.$refs.gameComponent) {
                 this.wire(this.$refs.gameComponent);
                 return;
             }
-            if (attempts > 50) return;
-            setTimeout(() => this.awaitRef(attempts + 1), 100);
+            if (attempts > 60) return;
+            setTimeout(() => this.awaitRef(attempts + 1), 80);
         },
         forwardMultiplayer(event, gameIdOf, name) {
             bus.on(event, (e) => {
@@ -116,6 +117,26 @@ export default {
                 if (id !== undefined && id !== null && String(id) !== String(this.$route.params.id)) return;
                 ref.multiplayerEvent(name, e);
             });
+        }
+    },
+    watch: {
+        '$route.params.id'(newId) {
+            if (newId) {
+                this.updateGameInstance((i) => {
+                    i.playTimeout = false;
+                    i.bettingType = 'manual';
+                });
+                this.$nextTick(() => {
+                    this.awaitRef();
+                });
+            }
+        },
+        'store.user'(newUser) {
+            if (newUser) {
+                this.$nextTick(() => {
+                    this.awaitRef();
+                });
+            }
         }
     },
     mounted() {
@@ -136,13 +157,19 @@ export default {
         // auto-bet continuation on round start
         bus.on('event:multiplayerTimerStart', (e) => {
             const gi = this.gameInstance;
-            if (gi.game && gi.game.id === e.game && gi.bettingType === 'auto' && gi.game.autoBetSettings.state) {
+            if (gi && gi.game && gi.game.id === e.game && gi.bettingType === 'auto' && gi.game.autoBetSettings && gi.game.autoBetSettings.state) {
                 if (typeof gi.game.autoBetSettings.next === 'function') gi.game.autoBetSettings.next();
             }
         });
 
         // own-game results feed session stats
         bus.on('event:multiplayerGameFinished', () => {});
+    },
+    beforeUnmount() {
+        window.$gameRef = null;
+        this.updateGameInstance((i) => {
+            i.playTimeout = false;
+        });
     }
 };
 </script>

@@ -3,6 +3,7 @@ import { pinia } from '../stores/pinia';
 import { whisper } from '../lib/whisper';
 import bus from '../lib/bus';
 import { toast } from '../lib/toast';
+import { Howl } from 'howler';
 
 const store = useAppStore(pinia);
 
@@ -154,7 +155,6 @@ export function useCasino() {
 
                 if (!store.sound) return;
                 try {
-                    const { Howl } = require('howler');
                     new Howl({ src: [src], volume: 0.3 }).play();
                 } catch (e) {}
             },

@@ -17,17 +17,21 @@ class PlayWhisper extends Whisper {
 
         if($this->user != null && !$game->ignoresMultipleClientTabs() && \App\Models\Game::where('game', $data->api_id)->where('user', $this->user->_id)->where('demo', false)->where('status', 'in-progress')->count() > 0) return ['code' => -8, 'message' => 'Game already has started'];
 
-        if($this->user == null && !$data->demo) return ['code' => -2, 'message' => 'Not authorized'];
-        if(!$game->usesCustomWagerCalculations() && floatval($data->bet) < Currency::find($data->currency)->minBet()) return ['code' => -1, 'message' => 'Invalid wager value'];
-        if($this->user != null && ($this->user->balance(Currency::find($data->currency))->demo($data->demo)->get() < floatval($data->bet))) return ['code' => -4, 'message' => 'Not enough money'];
+        $currency = Currency::find($data->currency ?? 'credits');
+        if($currency == null) $currency = Currency::find('credits');
+        if($currency == null) return ['code' => -1, 'message' => 'Invalid currency'];
+
+        $bet = floatval($data->bet ?? 0);
+        if(!$game->usesCustomWagerCalculations() && $bet < $currency->minBet()) return ['code' => -1, 'message' => 'Invalid wager value'];
+        if($this->user != null && ($this->user->balance($currency)->demo($data->demo ?? false)->get() < $bet)) return ['code' => -4, 'message' => 'Not enough money'];
 
         $data = new Data($this->user, [
             'api_id' => $data->api_id,
-            'bet' => $data->bet ?? 0,
-            'currency' => $data->currency,
-            'demo' => $data->demo,
+            'bet' => $bet,
+            'currency' => $currency->id(),
+            'demo' => $data->demo ?? false,
             'quick' => $data->quick ?? false,
-            'data' => (array) $data->data
+            'data' => (array) ($data->data ?? [])
         ]);
 
         return $game->process($data);

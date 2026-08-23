@@ -2,11 +2,11 @@
     <transition name="modal">
         <div class="modals" v-show="state.modals.length" @click.self="close()" @keyup.esc="close()" tabindex="0">
             <div v-for="(modal, index) in state.modals" :key="index" class="xmodal" @click.stop>
-                <button class="modal-close" @click="close()" aria-label="Close modal">
-                    <i class="fal fa-times"></i>
-                </button>
-                <div class="heading" v-if="modal.title">
-                    <span class="title">{{ $t(modal.title) }}</span>
+                <div class="modal-header-bar">
+                    <span class="modal-header-title">{{ modal.title ? $t(modal.title) : '' }}</span>
+                    <button class="modal-close" @click="close()" aria-label="Close modal">
+                        <i class="fal fa-times"></i>
+                    </button>
                 </div>
                 <div class="modal_template">
                     <component :is="resolve(modal.name)" v-bind="modal.props"></component>
@@ -94,45 +94,50 @@ body.show { overflow: hidden; }
     overflow: hidden;
     position: relative;
 
-    .modal-close {
-        position: absolute;
-        right: 16px;
-        top: 16px;
-        color: rgba(255, 255, 255, 0.6);
-        cursor: pointer;
-        z-index: 70;
-        font-size: 1.15em;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        width: 34px;
-        height: 34px;
+    .modal-header-bar {
         display: flex;
         align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        padding: 0;
+        justify-content: space-between;
+        padding: 16px 20px 6px;
+        min-height: 44px;
 
-        &:hover {
+        .modal-header-title {
+            font-size: 1.15em;
+            font-weight: 700;
             color: #fff;
-            background: rgba(229, 31, 73, 0.85);
-            border-color: #e51f49;
-            transform: scale(1.05);
         }
-    }
 
-    .heading {
-        text-align: center;
-        font-size: 1.25em;
-        font-weight: 700;
-        padding: 22px 24px 0;
-        color: #fff;
+        .modal-close {
+            position: static;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            z-index: 70;
+            font-size: 1.15em;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            padding: 0;
+            margin-left: auto;
+
+            &:hover {
+                color: #fff;
+                background: rgba(229, 31, 73, 0.85);
+                border-color: #e51f49;
+                transform: scale(1.05);
+            }
+        }
     }
 
     .modal_template {
         overflow-y: auto;
         flex: 1;
-        padding: 24px 28px 28px;
+        padding: 10px 24px 24px;
     }
 
     input, select {

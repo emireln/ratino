@@ -17,6 +17,7 @@
 
 <script>
 import { useAppStore } from '../../../stores/app';
+import bus from '../../../lib/bus';
 import SidebarLabel from './SidebarLabel.vue';
 import SidebarInput from './SidebarInput.vue';
 import SidebarSelect from './SidebarSelect.vue';
@@ -55,21 +56,31 @@ export default {
     },
     methods: {
         setBettingType(type) {
-            if (this.gameInstance.game.autoBetSettings.state || this.gameInstance.playTimeout) return;
+            if (!this.gameInstance || !this.gameInstance.game) return;
+            if (this.gameInstance.game.autoBetSettings && this.gameInstance.game.autoBetSettings.state) return;
+            if (this.gameInstance.playTimeout) return;
             this.updateGameInstance((i) => i.bettingType = type);
             const btn = document.querySelector('.play-button');
             if (btn) btn.classList.remove('disabled');
+        },
+        refreshComponents() {
+            const ref = window.$gameRef || (this.$parent && this.$parent.$refs && this.$parent.$refs.gameComponent);
+            if (ref && ref.getSidebarComponents) {
+                this.components = ref.getSidebarComponents();
+            }
         }
     },
     mounted() {
-        const ref = this.$parent && this.$parent.$refs.gameComponent;
-        if (ref && ref.getSidebarComponents) this.components = ref.getSidebarComponents();
+        this.refreshComponents();
+        bus.on('game:wired', this.refreshComponents);
     },
     updated() {
-        const ref = this.$parent && this.$parent.$refs.gameComponent;
-        if (ref && ref.getSidebarComponents && this.components.length === 0) {
-            this.components = ref.getSidebarComponents();
+        if (this.components.length === 0) {
+            this.refreshComponents();
         }
+    },
+    beforeUnmount() {
+        bus.off('game:wired', this.refreshComponents);
     }
 };
 </script>
