@@ -1,0 +1,82 @@
+<?php namespace App\Whisper;
+
+use App\Currency\Currency;
+use Carbon\Carbon;
+
+class WalletWhisper extends Whisper {
+
+    public function event(): string {
+        return 'Wallet';
+    }
+
+    public function process($data): array {
+        if ($this->user == null) {
+            return ['code' => 1, 'message' => 'Not authorized'];
+        }
+
+        $action = $data->action ?? 'info';
+        $currency = $this->user->clientCurrency();
+        $balance = $this->user->balance($currency);
+
+        if ($action === 'info') {
+            $lastWeekly = $this->user->weekly_drop_claimed ? Carbon::parse($this->user->weekly_drop_claimed) : null;
+            $canClaimWeekly = $lastWeekly == null || $lastWeekly->diffInDays(Carbon::now()) >= 7;
+            $nextWeeklyIn = $canClaimWeekly ? 0 : (7 * 86400 - Carbon::now()->diffInSeconds($lastWeekly));
+
+            return [
+                'credits' => $balance->get(),
+                'demo_credits' => $this->user->balance($currency)->demo(true)->get(),
+                'can_claim_weekly' => $canClaimWeekly,
+                'next_weekly_in' => max(0, $nextWeeklyIn),
+                'weekly_amount' => 5000,
+                'can_claim_faucet' => $balance->get() < 50,
+                'faucet_amount' => 500
+            ];
+        }
+
+        if ($action === 'weekly_drop') {
+            $lastWeekly = $this->user->weekly_drop_claimed ? Carbon::parse($this->user->weekly_drop_claimed) : null;
+            if ($lastWeekly != null && $lastWeekly->diffInDays(Carbon::now()) < 7) {
+                return ['code' => 2, 'message' => 'Weekly drop not available yet'];
+            }
+
+            $amount = 5000;
+            $balance->add($amount, ['type' => 'weekly_drop', 'note' => 'Weekly Cheddar Drop']);
+            $this->user->update(['weekly_drop_claimed' => Carbon::now()]);
+
+            return [
+                'success' => true,
+                'amount' => $amount,
+                'new_balance' => $balance->get(),
+                'message' => 'Claimed 5,000 $CHEDDAR weekly drop!'
+            ];
+        }
+
+        if ($action === 'faucet') {
+            if ($balance->get() >= 50) {
+                return ['code' => 3, 'message' => 'Faucet only available when balance is below 50 $CHEDDAR'];
+            }
+
+            $amount = 500;
+            $balance->add($amount, ['type' => 'faucet', 'note' => 'Emergency Cheese Faucet']);
+
+            return [
+                'success' => true,
+                'amount' => $amount,
+                'new_balance' => $balance->get(),
+                'message' => 'Added 500 $CHEDDAR reload!'
+            ];
+        }
+
+        if ($action === 'reload_demo') {
+            $this->user->balance($currency)->demo(true)->add(10000, ['type' => 'demo_reload']);
+            return [
+                'success' => true,
+                'new_demo_balance' => $this->user->balance($currency)->demo(true)->get()
+            ];
+        }
+
+        return ['code' => 4, 'message' => 'Unknown action'];
+    }
+
+}

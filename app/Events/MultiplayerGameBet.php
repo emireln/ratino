@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Events;
+
+use App\Models\Game;
+use App\Models\User;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class MultiplayerGameBet implements ShouldBroadcastNow {
+
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    private User $user;
+    private Game $game;
+    private array $data;
+
+    public function __construct(User $user, Game $game, array $data) {
+        $this->user = $user;
+        $this->game = $game;
+        $this->data = $data;
+    }
+
+    public function broadcastOn(): Channel {
+        return new Channel('multiplayer.'.$this->game->game);
+    }
+
+    public function broadcastWith(): array {
+        return [
+            'user' => array_merge($this->user->toArray(), ['vipLevel' => $this->user->vipLevel()]),
+            'game' => $this->game->makeHidden('server_seed')->makeHidden('nonce')->toArray(),
+            'data' => $this->data
+        ];
+    }
+
+}

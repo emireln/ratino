@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800&display=swap');
+
+@import 'variables';
+@import 'bootstrap/scss/bootstrap';
+
+@import 'fontawesome.min';
+@import 'superwheel';
+@import 'overlayscrollbars/css/OverlayScrollbars.min.css';
+@import 'polyfills';
+
+// Root-level overrides use hardcoded dark-theme values.
+// NOTE: never use @include themed() at SCSS root level here — dart-sass
+// compiles the root `&` to `:scope`, producing dead selectors.
+
+body {
+    background: #17181d;
+    color: #fff;
+    font-family: 'Open Sans', sans-serif;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+
+$accent: #e51f49;
+$input-bg: #24232a;
+$input-border: #1d1c23;
+
+input, select, textarea {
+    border: 1px solid $input-border;
+    background: $input-bg;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 3px;
+    width: 100%;
+
+    &::placeholder { color: rgba(255, 255, 255, .35); }
+
+    &:focus {
+        outline: none;
+        border-color: $accent;
+        box-shadow: 0 0 0 3px rgba($accent, .2);
+    }
+}
+
+.btn {
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .25s ease;
+
+    &:disabled {
+        opacity: .5;
+        cursor: not-allowed;
+    }
+
+    &:focus, &:active {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba($accent, .3);
+    }
+}
+
+.btn-primary, button.btn-primary {
+    background: $accent !important;
+    border-color: $accent !important;
+    color: #fff !important;
+
+    &:hover:not(:disabled) {
+        background: darken($accent, 6%) !important;
+        border-color: darken($accent, 6%) !important;
+        color: #fff !important;
+    }
+}
+
+.btn-secondary {
+    background: $input-bg;
+    border: 1px solid $input-border;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+        background: lighten($input-bg, 6%);
+        color: #fff;
+    }
+}
+
+.btn-transparent {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, .25);
+
+    &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, .55);
+        color: #fff;
+    }
+}
+
+.text-success { color: #2fd672 !important; }
+.text-danger { color: #e51f49 !important; }
+
+.resultPopup {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    background: rgba(23, 24, 29, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 18px 34px;
+    text-align: center;
+    z-index: 60000;
+    animation: resultPopupIn .25s ease;
+
+    .multiplier {
+        font-size: 2em;
+        font-weight: 800;
+    }
+
+    .profit {
+        font-size: 1.1em;
+        margin-top: 4px;
+    }
+
+    .demoHeader {
+        font-size: .7em;
+        text-transform: uppercase;
+        letter-spacing: .15em;
+        opacity: .6;
+        margin-bottom: 4px;
+    }
+
+    &.resultPopup-win .multiplier { color: #2fd672; }
+    &.resultPopup-lose .multiplier { color: #e51f49; }
+}
+
+@keyframes resultPopupIn {
+    from { transform: translate(-50%, -50%) scale(.85); opacity: 0; }
+    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
