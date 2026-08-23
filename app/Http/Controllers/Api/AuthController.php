@@ -37,19 +37,27 @@ class AuthController extends Controller {
     public function login(Request $request) {
         $request->validate([
             'login' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:4']
+            'password' => ['required', 'string']
         ]);
 
         $user = User::where('email', $request->login)->orWhere('name', $request->login)->first();
-        $supabase = app(SupabaseService::class);
 
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return APIResponse::reject(1, 'Invalid login or password.');
+        }
+
+        $supabase = app(SupabaseService::class);
         if ($supabase->enabled()) {
-            if (!$user || !$user->email) return APIResponse::reject(1, 'Wrong credentials');
-            $session = $supabase->signIn($user->email, $request->password);
-            if (!$session || !isset($session['user']['id'])) return APIResponse::reject(1, 'Wrong credentials');
-            if (!$user->supabase_id) $user->update(['supabase_id' => $session['user']['id']]);
-            if ($user->supabase_id !== $session['user']['id']) return APIResponse::reject(1, 'Wrong credentials');
-        } elseif (!$user || !Hash::check($request->password, $user->password)) return APIResponse::reject(1, 'Wrong credentials');
+            try {
+                if (!$user->supabase_id && $user->email) {
+                    $remote = $supabase->signUp($user->email, $request->password, $user->name);
+                    $remoteId = $remote['id'] ?? ($remote['user']['id'] ?? null);
+                    if ($remoteId) {
+                        $user->update(['supabase_id' => $remoteId]);
+                    }
+                }
+            } catch (\Throwable $t) {}
+        }
 
         $user->update(['login_ip' => User::getIp(), 'last_activity' => now()]);
 
@@ -61,21 +69,38 @@ class AuthController extends Controller {
 
     public function register(Request $request) {
         $request->validate([
-            'email' => ['required', 'unique:users', 'email'],
-            'name' => ['required', 'unique:users', 'string', 'max:64', 'regex:/^[a-zA-Z0-9]{4,64}$/u'],
-            'password' => ['required', 'string', 'min:8']
+            'email' => ['required', 'email'],
+            'name' => ['required', 'string', 'min:3', 'max:32'],
+            'password' => ['required', 'string', 'min:4']
         ]);
 
-        $supabase = app(SupabaseService::class);
+        if (User::where('email', $request->email)->exists()) {
+            return APIResponse::reject(2, 'This email is already registered.');
+        }
+
+        if (User::where('name', $request->name)->exists()) {
+            return APIResponse::reject(3, 'This username is already taken.');
+        }
+
         $extra = [];
+        $supabase = app(SupabaseService::class);
         if ($supabase->enabled()) {
-            $remoteUser = $supabase->signUp($request->email, $request->password, $request->name);
-            if (!$remoteUser || !isset($remoteUser['user']['id'])) return APIResponse::reject(2, 'Unable to create account');
-            $extra['supabase_id'] = $remoteUser['user']['id'];
+            try {
+                $remote = $supabase->signUp($request->email, $request->password, $request->name);
+                $remoteId = $remote['id'] ?? ($remote['user']['id'] ?? null);
+                if ($remoteId) {
+                    $extra['supabase_id'] = $remoteId;
+                }
+            } catch (\Throwable $t) {}
         }
 
         $user = $this->createRatinoUser($request->email, $request->name, $request->password, $extra);
-        $supabase->upsertProfile($user);
+
+        if ($supabase->enabled() && isset($extra['supabase_id'])) {
+            try {
+                $supabase->upsertProfile($user);
+            } catch (\Throwable $t) {}
+        }
 
         return APIResponse::success([
             'user' => $user->toArray(),

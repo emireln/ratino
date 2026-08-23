@@ -41,10 +41,6 @@
                 <div class="live-feed-multiplier" :class="bet.status === 'win' ? 'text-success' : 'text-danger'">
                     {{ (bet.multiplier ?? 0).toFixed(2) }}x
                 </div>
-                <div class="live-feed-quick-react">
-                    <button class="btn-mini-react" @click="quickReact(bet, '🔥')" title="Drop 🔥 reaction">🔥</button>
-                    <button class="btn-mini-react" @click="quickReact(bet, '👏')" title="Drop 👏 reaction">👏</button>
-                </div>
             </div>
 
             <div class="live-feed-empty" v-if="!filteredBets.length">
@@ -113,10 +109,6 @@ export default {
         onLiveBet(e) {
             this.bets.unshift(e);
             if (this.bets.length > 25) this.bets.pop();
-        },
-        quickReact(bet, emoji) {
-            whisper('Friend', { action: 'react', emoji, channel: 'live' }).catch(() => {});
-            this.$toast.success(`Dropped ${emoji} on ${bet.user ? bet.user.name : 'bet'}!`);
         }
     },
     mounted() {
@@ -203,7 +195,7 @@ export default {
 
         .live-feed-row {
             display: grid;
-            grid-template-columns: 36px 1fr 130px 90px 70px;
+            grid-template-columns: 36px 1fr 130px 90px;
             align-items: center;
             gap: 12px;
             padding: 10px 16px;
@@ -252,44 +244,18 @@ export default {
             .live-feed-time {
                 font-size: .72em;
                 color: rgba(255, 255, 255, 0.45);
-                display: block;
-                margin-top: 1px;
             }
 
             .live-feed-wager {
                 text-align: right;
                 font-weight: 600;
+                color: rgba(255, 255, 255, 0.85);
             }
 
             .live-feed-multiplier {
                 text-align: right;
                 font-weight: 800;
                 font-size: 1.05em;
-            }
-
-            .live-feed-quick-react {
-                display: flex;
-                justify-content: flex-end;
-                gap: 4px;
-
-                .btn-mini-react {
-                    background: rgba(255, 255, 255, 0.06);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 50%;
-                    width: 26px;
-                    height: 26px;
-                    font-size: 0.85em;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    transition: transform 0.15s ease, background 0.15s ease;
-
-                    &:hover {
-                        transform: scale(1.25);
-                        background: rgba(229, 31, 73, 0.25);
-                    }
-                }
             }
         }
 
@@ -307,7 +273,6 @@ export default {
 @media(max-width: 600px) {
     .live-feed-rows .live-feed-row {
         grid-template-columns: 32px 1fr 90px 70px;
-        .live-feed-quick-react { display: none; }
     }
 }
 </style>

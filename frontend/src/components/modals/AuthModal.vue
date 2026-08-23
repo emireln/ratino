@@ -76,9 +76,17 @@ export default {
             if (this.loading) return;
             const store = useAppStore();
             const modal = useModal();
-            this.loading = true;
 
             if (this.currentType === 'register') {
+                if (!this.email || !this.login || !this.password) {
+                    this.$toast.error('Please enter email, username, and password.');
+                    return;
+                }
+                if (this.password.length < 4) {
+                    this.$toast.error('Password must be at least 4 characters long.');
+                    return;
+                }
+                this.loading = true;
                 client.post('/api/auth/register', {
                     email: this.email,
                     name: this.login,
@@ -88,12 +96,19 @@ export default {
                     store.updateData();
                     connectRealtime(data.user._id);
                     modal.close();
-                }).catch(() => {
-                    this.$toast.error(this.$t('general.auth.wrong_credentials'));
+                    this.$toast.success('Account created! 10,000 Chips bonus loaded.');
+                }).catch((err) => {
+                    const msg = err?.response?.data?.message || err?.response?.data?.errors?.email?.[0] || err?.response?.data?.errors?.name?.[0] || err?.response?.data?.errors?.password?.[0] || 'Unable to create account.';
+                    this.$toast.error(msg);
                 }).finally(() => {
                     this.loading = false;
                 });
             } else {
+                if (!this.login || !this.password) {
+                    this.$toast.error('Please enter your username/email and password.');
+                    return;
+                }
+                this.loading = true;
                 client.post('/api/auth/login', {
                     login: this.login,
                     password: this.password
@@ -102,8 +117,10 @@ export default {
                     store.updateData();
                     connectRealtime(data.user._id);
                     modal.close();
-                }).catch(() => {
-                    this.$toast.error(this.$t('general.auth.wrong_credentials'));
+                    this.$toast.success(`Welcome back, ${data.user.name}!`);
+                }).catch((err) => {
+                    const msg = err?.response?.data?.message || 'Invalid username/email or password.';
+                    this.$toast.error(msg);
                 }).finally(() => {
                     this.loading = false;
                 });
