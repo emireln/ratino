@@ -20,7 +20,7 @@
                 </div>
                 <div class="col-12 col-lg-9">
                     <div :class="`game-content game-content-${$route.params.id} game-type-local`">
-                        <component ref="gameComponent" :is="component" v-if="component"></component>
+                        <component ref="gameComponent" :is="component" :key="$route.params.id" v-if="component"></component>
                         <div v-else class="game-missing">
                             <i class="fas fa-dice"></i>
                             <div>Game not found</div>
@@ -168,8 +168,13 @@ export default {
     beforeUnmount() {
         window.$gameRef = null;
         this.updateGameInstance((i) => {
-            i.playTimeout = false;
+            if (i) {
+                i.playTimeout = false;
+                i.game = null;
+            }
         });
+        const footer = document.querySelector('.game-footer');
+        if (footer) footer.innerHTML = '';
     }
 };
 </script>

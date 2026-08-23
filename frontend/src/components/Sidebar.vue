@@ -14,23 +14,6 @@
                     <icon :icon="game.icon"></icon>
                 </router-link>
             </div>
-
-            <div class="sidebar-bottom-actions">
-                <button :class="['sidebar-action-btn', store.sound ? 'active' : '']"
-                    @click="toggleSound"
-                    @mouseenter="onHover(store.sound ? 'Mute Sound' : 'Unmute Sound', $event)"
-                    @mouseleave="onLeave"
-                    :aria-label="store.sound ? 'Mute Sound' : 'Unmute Sound'">
-                    <i :class="store.sound ? 'fas fa-volume-up' : 'fas fa-volume-mute'"></i>
-                </button>
-                <button class="sidebar-action-btn"
-                    @click="openHelp"
-                    @mouseenter="onHover('Help & Fairness', $event)"
-                    @mouseleave="onLeave"
-                    aria-label="Help & Fairness">
-                    <i class="fas fa-question-circle"></i>
-                </button>
-            </div>
         </div>
 
         <!-- Floating Tooltip Immune to Parent Overflow Clipping -->
@@ -46,7 +29,6 @@
 
 <script>
 import { useAppStore } from '../stores/app';
-import { useModal } from '../composables/useModal';
 
 export default {
     setup() {
@@ -65,14 +47,6 @@ export default {
         }
     },
     methods: {
-        toggleSound() {
-            this.store.setSoundState(!this.store.sound);
-            this.$toast.info(this.store.sound ? 'Sound enabled' : 'Sound muted');
-            this.hoveredText = this.store.sound ? 'Mute Sound' : 'Unmute Sound';
-        },
-        openHelp() {
-            useModal().open('Help', {}, 'help.title');
-        },
         onHover(text, event) {
             clearTimeout(this.hoverTimer);
             const rect = event.currentTarget.getBoundingClientRect();
@@ -195,47 +169,6 @@ export default {
             justify-content: center;
             color: inherit;
             transition: color 0.2s ease;
-        }
-    }
-
-    .sidebar-bottom-actions {
-        margin-top: auto;
-        padding-top: 16px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        width: 100%;
-
-        .sidebar-action-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 40px;
-            width: 40px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.65);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            padding: 0;
-
-            &:hover {
-                background: rgba(255, 255, 255, 0.08);
-                border-color: rgba(255, 255, 255, 0.12);
-                color: #fff;
-            }
-
-            &.active {
-                color: #e51f49;
-                background: rgba(255, 255, 255, 0.08);
-                border-color: rgba(255, 255, 255, 0.1);
-            }
-
-            i {
-                font-size: 1.1em;
-            }
         }
     }
 }

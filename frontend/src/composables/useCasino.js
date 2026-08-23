@@ -71,22 +71,27 @@ export function useCasino() {
                 store.setGameInstance(instance);
 
                 if (ref.restore) whisper('RestoreData', { api_id: id }).then((response) => {
-                    this.updateGameInstance((i) => {
-                        i.game.extendedId = response.game._id;
-                        i.game.extendedState = 'in-progress';
-                        i.game.profit = null;
-                        i.game.currentProfit = response.game.wager * response.game.multiplier;
-                        i.playTimeout = false;
-                        i.bet = response.game.wager;
-                    });
-                    ref.restore(response);
+                    if (response && response.game && response.game._id) {
+                        this.updateGameInstance((i) => {
+                            if (!i.game) return;
+                            i.game.extendedId = response.game._id;
+                            i.game.extendedState = 'in-progress';
+                            i.game.profit = null;
+                            i.game.currentProfit = response.game.wager * response.game.multiplier;
+                            i.playTimeout = false;
+                            i.bet = response.game.wager;
+                        });
+                        ref.restore(response);
+                    }
                 }).catch(() => {});
 
                 if (ref.gameDataRetrieved) whisper('GameData', { api_id: id }).then((response) => {
                     const instance = store.gameInstance;
-                    instance.game.data = response;
-                    store.setGameInstance(instance);
-                    ref.gameDataRetrieved(instance.game.data);
+                    if (instance && instance.game) {
+                        instance.game.data = response;
+                        store.setGameInstance(instance);
+                        if (ref && typeof ref.gameDataRetrieved === 'function') ref.gameDataRetrieved(instance.game.data);
+                    }
                 }).catch(() => {});
 
                 if (ref.afterMount) ref.afterMount();
@@ -99,12 +104,14 @@ export function useCasino() {
             },
 
             capitalize(string) {
+                if (!string) return '';
                 return [].map.call(string, (char, i) => i ? char : char.toUpperCase()).join('');
             },
 
             applyHouseEdge(payout) {
-                const game = store.games.filter((e) => e.id === store.gameInstance.game.id)[0];
-                return game && game.houseEdge ? (payout * (1 - game.houseEdge / 100)).toFixed(2) : payout.toFixed(2);
+                const activeId = store.gameInstance && store.gameInstance.game ? store.gameInstance.game.id : null;
+                const game = (store.games || []).filter((e) => e && e.id === activeId)[0];
+                return game && game.houseEdge ? (payout * (1 - game.houseEdge / 100)).toFixed(2) : parseFloat(payout || 0).toFixed(2);
             },
 
             rawBitcoin(to, value) {

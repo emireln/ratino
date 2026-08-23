@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="game-crash">
         <canvas width="800" height="600"></canvas>
     </div>
 </template>
@@ -167,6 +167,7 @@
                         drawDebug(x2, y2);
                     }
 
+                    if (this._unmounted || !this.ctx) return;
                     this.redrawCanvas();
 
                     this.drawBezierSplit(x0, y0, x1, y1, x2, y2, 0, progress);
@@ -176,9 +177,9 @@
                         this.panZoomY += 1;
                     }
 
-                    if(!this.crashed) window.requestAnimationFrame(step);
+                    if(!this.crashed && !this._unmounted) this.animationFrame = window.requestAnimationFrame(step);
                 };
-                window.requestAnimationFrame(step);
+                this.animationFrame = window.requestAnimationFrame(step);
             },
             drawGrid() {
                 const scale = 1 / this.panZoomScale;
@@ -514,6 +515,11 @@
                     $('.play-button').html(this.$t('general.cancel'));
                 }
             }
+        },
+        beforeUnmount() {
+            this._unmounted = true;
+            if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
+            $('.play-button').off('click', this.onPlayButtonClick);
         }
     }
 </script>

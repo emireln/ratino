@@ -108,6 +108,7 @@ header {
         align-items: center;
         height: $header-height;
         padding: 0 8px;
+        position: relative;
 
         .logo {
             height: 48px;
@@ -131,10 +132,14 @@ header {
         }
 
         .header-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto;
+            pointer-events: auto;
+            z-index: 10;
 
             .wallet {
                 display: flex;
@@ -190,26 +195,25 @@ header {
             .feature-buttons {
                 display: flex;
                 align-items: center;
-                gap: 4px;
+                gap: 2px;
 
                 i {
                     display: inline-flex;
                     align-items: center;
                     justify-content: center;
-                    width: 38px;
-                    height: 38px;
+                    width: 40px;
+                    height: 40px;
                     border-radius: 8px;
-                    font-size: 1.05em;
-                    background: rgba(255, 255, 255, 0.04);
-                    border: 1px solid rgba(255, 255, 255, 0.06);
-                    color: rgba(255, 255, 255, 0.7);
+                    font-size: 1.1em;
+                    background: transparent;
+                    border: none;
+                    color: rgba(255, 255, 255, 0.65);
                     opacity: 1;
                     cursor: pointer;
                     transition: all 0.2s ease;
 
                     &:hover {
                         background: rgba(255, 255, 255, 0.08);
-                        border-color: rgba(255, 255, 255, 0.12);
                         color: #fff;
                     }
 
@@ -223,17 +227,16 @@ header {
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                padding: 0 12px;
-                height: 38px;
+                padding: 0 10px;
+                height: 40px;
                 border-radius: 8px;
-                background: rgba(255, 255, 255, 0.04);
-                border: 1px solid rgba(255, 255, 255, 0.06);
+                background: transparent;
+                border: none;
                 cursor: pointer;
                 transition: all 0.2s ease;
 
                 &:hover {
                     background: rgba(255, 255, 255, 0.08);
-                    border-color: rgba(255, 255, 255, 0.12);
                 }
 
                 .header-avatar {
