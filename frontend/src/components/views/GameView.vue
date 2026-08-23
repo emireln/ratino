@@ -45,24 +45,24 @@ import { useModal } from '../../composables/useModal';
 import bus from '../../lib/bus';
 
 const games = {
-    mines: () => import('./games/Mines.vue'),
-    dice: () => import('./games/Dice.vue'),
-    wheel: () => import('./games/Wheel.vue'),
-    plinko: () => import('./games/Plinko.vue'),
-    coinflip: () => import('./games/Coinflip.vue'),
-    tower: () => import('./games/Tower.vue'),
-    keno: () => import('./games/Keno.vue'),
-    stairs: () => import('./games/Stairs.vue'),
-    blackjack: () => import('./games/Blackjack.vue'),
-    diamonds: () => import('./games/Diamonds.vue'),
-    roulette: () => import('./games/Roulette.vue'),
-    crash: () => import('./games/Crash.vue'),
-    hilo: () => import('./games/Hilo.vue'),
-    limbo: () => import('./games/Limbo.vue'),
-    slide: () => import('./games/Slide.vue'),
-    baccarat: () => import('./games/Baccarat.vue'),
-    videopoker: () => import('./games/Videopoker.vue'),
-    slots: () => import('./games/Slots.vue')
+    mines: defineAsyncComponent(() => import('./games/Mines.vue')),
+    dice: defineAsyncComponent(() => import('./games/Dice.vue')),
+    wheel: defineAsyncComponent(() => import('./games/Wheel.vue')),
+    plinko: defineAsyncComponent(() => import('./games/Plinko.vue')),
+    coinflip: defineAsyncComponent(() => import('./games/Coinflip.vue')),
+    tower: defineAsyncComponent(() => import('./games/Tower.vue')),
+    keno: defineAsyncComponent(() => import('./games/Keno.vue')),
+    stairs: defineAsyncComponent(() => import('./games/Stairs.vue')),
+    blackjack: defineAsyncComponent(() => import('./games/Blackjack.vue')),
+    diamonds: defineAsyncComponent(() => import('./games/Diamonds.vue')),
+    roulette: defineAsyncComponent(() => import('./games/Roulette.vue')),
+    crash: defineAsyncComponent(() => import('./games/Crash.vue')),
+    hilo: defineAsyncComponent(() => import('./games/Hilo.vue')),
+    limbo: defineAsyncComponent(() => import('./games/Limbo.vue')),
+    slide: defineAsyncComponent(() => import('./games/Slide.vue')),
+    baccarat: defineAsyncComponent(() => import('./games/Baccarat.vue')),
+    videopoker: defineAsyncComponent(() => import('./games/Videopoker.vue')),
+    slots: defineAsyncComponent(() => import('./games/Slots.vue'))
 };
 
 export default {
@@ -72,7 +72,7 @@ export default {
     },
     computed: {
         component() {
-            return games[this.$route.params.id] ? defineAsyncComponent(games[this.$route.params.id]) : null;
+            return games[this.$route.params.id] || null;
         },
         isSharedRoom() {
             return Boolean(this.$route.query.room || localStorage.getItem('ratino_active_room'));
