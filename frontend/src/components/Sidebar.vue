@@ -6,7 +6,6 @@
                     <img src="/favicon-64.png" alt="R" class="brand-r">
                 </router-link>
             </div>
-            <div class="sidebar-divider"></div>
             <div class="sidebar-games-list">
                 <router-link v-for="game in visibleGames" :key="game.id"
                     :to="`/casino/game/${game.id}`" class="game"
@@ -91,7 +90,7 @@ export default {
         align-items: center;
 
         background: rgba(18, 19, 24, 0.95);
-        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        border-right: none;
         backdrop-filter: blur(20px);
 
         scrollbar-width: none;
@@ -104,7 +103,7 @@ export default {
         justify-content: center;
         height: 48px;
         width: 100%;
-        margin-bottom: 6px;
+        margin-bottom: 10px;
 
         a {
             display: flex;
@@ -121,15 +120,8 @@ export default {
             width: 32px;
             height: 32px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(229, 31, 73, 0.35);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
         }
-    }
-
-    .sidebar-divider {
-        width: 24px;
-        height: 1px;
-        background: rgba(255, 255, 255, 0.1);
-        margin: 4px auto 10px;
     }
 
     .sidebar-games-list {

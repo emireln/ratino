@@ -2,20 +2,20 @@
     <div class="auth-modal-content">
         <div class="auth-brand-header">
             <img src="/img/misc/logo.png" alt="RATINO" class="auth-logo">
-            <p class="auth-subtitle">{{ type === 'login' ? 'Welcome back! Sign in to play.' : 'Create an account to start playing.' }}</p>
+            <p class="auth-subtitle">{{ currentType === 'login' ? 'Welcome back! Sign in to play.' : 'Create an account to start playing.' }}</p>
         </div>
 
         <div class="auth-tabs">
-            <button :class="['auth-tab', type === 'login' ? 'active' : '']" @click="type = 'login'" type="button">
+            <button :class="['auth-tab', currentType === 'login' ? 'active' : '']" @click="currentType = 'login'" type="button">
                 {{ $t('general.auth.login') }}
             </button>
-            <button :class="['auth-tab', type === 'register' ? 'active' : '']" @click="type = 'register'" type="button">
+            <button :class="['auth-tab', currentType === 'register' ? 'active' : '']" @click="currentType = 'register'" type="button">
                 {{ $t('general.auth.register') }}
             </button>
         </div>
 
         <div class="auth-form">
-            <div class="form-group mb-3" v-if="type === 'register'">
+            <div class="form-group mb-3" v-if="currentType === 'register'">
                 <label class="form-label">{{ $t('general.auth.credentials.email') }}</label>
                 <div class="input-with-icon">
                     <i class="fas fa-envelope"></i>
@@ -41,7 +41,7 @@
 
             <button class="btn btn-auth-submit" @click="done" :disabled="loading">
                 <span v-if="loading"><i class="fas fa-spinner fa-spin mr-2"></i> Processing...</span>
-                <span v-else>{{ $t('general.auth.' + type) }}</span>
+                <span v-else>{{ $t('general.auth.' + currentType) }}</span>
             </button>
         </div>
     </div>
@@ -59,11 +59,17 @@ export default {
     },
     data() {
         return {
+            currentType: this.type || 'login',
             email: '',
             login: '',
             password: '',
             loading: false
         };
+    },
+    watch: {
+        type(val) {
+            if (val) this.currentType = val;
+        }
     },
     methods: {
         done() {
@@ -72,7 +78,7 @@ export default {
             const modal = useModal();
             this.loading = true;
 
-            if (this.type === 'register') {
+            if (this.currentType === 'register') {
                 client.post('/api/auth/register', {
                     email: this.email,
                     name: this.login,

@@ -96,7 +96,7 @@ header {
     .fixed {
         background: rgba(23, 24, 29, 0.92);
         backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: none;
     }
 
     .header-container {

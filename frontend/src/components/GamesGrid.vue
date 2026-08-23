@@ -210,7 +210,7 @@ export default {
     &:hover {
         transform: translateY(-4px) scale(1.02);
         border-color: rgba(229, 31, 73, 0.45);
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), 0 0 16px rgba(229, 31, 73, 0.2);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
 
         .game_poster-name {
             color: #fff;
