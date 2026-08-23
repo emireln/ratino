@@ -7,6 +7,11 @@ function loadLocales() {
         const match = path.match(/([A-Za-z0-9-_]+)\.json$/);
         if (match) messages[match[1]] = modules[path].default ?? modules[path];
     }
+    if (messages['pt-br']) {
+        messages['pt'] = messages['pt-br'];
+        messages['pt-BR'] = messages['pt-br'];
+        messages['pt_BR'] = messages['pt-br'];
+    }
     return messages;
 }
 

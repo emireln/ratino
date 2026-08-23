@@ -71,10 +71,10 @@ export default {
     border-radius: 14px;
     margin: 0 auto 30px;
     width: 100%;
-    max-width: 1200px;
+    max-width: 100%;
     aspect-ratio: 1640 / 401;
     min-height: 180px;
-    max-height: 290px;
+    max-height: 320px;
     background: rgba(255, 255, 255, .03);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);

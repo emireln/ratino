@@ -31,10 +31,24 @@ class BountyService {
     ];
 
     public const WEEKLY = [
-        ['id' => 'weekly_wager_50000', 'title' => 'Wager 50,000 Chips',          'reward' => 10000, 'target' => 50000, 'type' => 'wager'],
-        ['id' => 'weekly_any_50x',     'title' => 'Hit any 50x+ multiplier',        'reward' => 5000,  'target' => 50, 'type' => 'multiplier'],
-        ['id' => 'weekly_slots_80x',   'title' => 'Hit 80x in Slots',               'reward' => 2500,  'target' => 80, 'type' => 'game', 'game' => 'slots'],
-        ['id' => 'weekly_wins_50',     'title' => 'Win 50 games',                   'reward' => 5000,  'target' => 50, 'type' => 'wins']
+        ['id' => 'weekly_wager_10k',    'title' => 'Wager 10,000 Chips',              'reward' => 2500,  'target' => 10000,  'type' => 'wager'],
+        ['id' => 'weekly_wager_50k',    'title' => 'Wager 50,000 Chips',              'reward' => 10000, 'target' => 50000,  'type' => 'wager'],
+        ['id' => 'weekly_wager_100k',   'title' => 'Wager 100,000 Chips',             'reward' => 25000, 'target' => 100000, 'type' => 'wager'],
+        ['id' => 'weekly_wins_25',      'title' => 'Win 25 games',                    'reward' => 3000,  'target' => 25,     'type' => 'wins'],
+        ['id' => 'weekly_wins_50',      'title' => 'Win 50 games',                    'reward' => 7500,  'target' => 50,     'type' => 'wins'],
+        ['id' => 'weekly_wins_100',     'title' => 'Win 100 games',                   'reward' => 20000, 'target' => 100,    'type' => 'wins'],
+        ['id' => 'weekly_any_50x',      'title' => 'Hit any 50x+ multiplier',         'reward' => 5000,  'target' => 50,     'type' => 'multiplier'],
+        ['id' => 'weekly_limbo_20x',    'title' => 'Hit 20x in Limbo',                'reward' => 4000,  'target' => 20,     'type' => 'game', 'game' => 'limbo'],
+        ['id' => 'weekly_crash_25x',    'title' => 'Reach 25x in Crash',              'reward' => 6000,  'target' => 25,     'type' => 'game', 'game' => 'crash'],
+        ['id' => 'weekly_dice_75x',     'title' => 'Roll 75x+ in Dice',               'reward' => 5000,  'target' => 75,     'type' => 'game', 'game' => 'dice'],
+        ['id' => 'weekly_mines_30x',    'title' => 'Hit 30x in Mines with 4+ mines',  'reward' => 8000,  'target' => 30,     'type' => 'mines', 'game' => 'mines', 'mines' => 4],
+        ['id' => 'weekly_slots_80x',    'title' => 'Hit 80x in Slots',                'reward' => 5000,  'target' => 80,     'type' => 'game', 'game' => 'slots'],
+        ['id' => 'weekly_roulette_35x', 'title' => 'Hit 35x straight-up in Roulette', 'reward' => 7500,  'target' => 35,     'type' => 'game', 'game' => 'roulette'],
+        ['id' => 'weekly_plinko_25x',   'title' => 'Hit 25x+ in Plinko',              'reward' => 5000,  'target' => 25,     'type' => 'game', 'game' => 'plinko'],
+        ['id' => 'weekly_blackjack_3',  'title' => 'Win 3 consecutive Blackjack hands','reward' => 6000, 'target' => 3,     'type' => 'streak', 'game' => 'blackjack'],
+        ['id' => 'weekly_coinflip_5',   'title' => 'Win 5 consecutive Coinflips',     'reward' => 5000,  'target' => 5,      'type' => 'streak', 'game' => 'coinflip'],
+        ['id' => 'weekly_tower_10x',    'title' => 'Reach 10x+ in Tower',             'reward' => 4500,  'target' => 10,     'type' => 'game', 'game' => 'tower'],
+        ['id' => 'weekly_stairs_15x',   'title' => 'Climb 15x+ in Stairs',            'reward' => 5500,  'target' => 15,     'type' => 'game', 'game' => 'stairs']
     ];
 
     public static function periodKey(string $type): string {
