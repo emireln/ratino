@@ -279,7 +279,7 @@ export default {
 
 .game-footer {
     position: fixed;
-    bottom: 22px;
+    bottom: 20px;
     left: $sidebar-width;
     right: 0;
     margin: 0 auto;
@@ -287,41 +287,44 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 50px;
-    background: rgba(18, 19, 25, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.2);
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    background: rgba(18, 19, 25, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(16px);
     z-index: 1500;
 
     .action {
         cursor: pointer;
-        opacity: .65;
-        transition: all .25s ease;
-        font-size: 1.55em;
-        width: 50px;
-        height: 50px;
+        opacity: .7;
+        transition: all .2s ease;
+        font-size: 1.15em;
+        width: 38px;
+        height: 38px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 50%;
-        background: transparent;
-        border: none;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
         color: #fff;
         padding: 0;
 
         &:hover {
             opacity: 1;
-            background: rgba(229, 31, 73, 0.22);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
             color: #fff;
-            transform: translateY(-2px) scale(1.08);
+            transform: none;
         }
 
         &.active, i.active {
             opacity: 1;
             color: #e51f49;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
         }
     }
 }

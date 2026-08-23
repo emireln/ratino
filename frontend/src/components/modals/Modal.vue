@@ -31,6 +31,7 @@ import WalletModal from './WalletModal.vue';
 import RoomModal from './RoomModal.vue';
 import FriendsModal from './FriendsModal.vue';
 import ProfileModal from './ProfileModal.vue';
+import HelpModal from './HelpModal.vue';
 
 const registry = {
     Auth: AuthModal,
@@ -45,7 +46,8 @@ const registry = {
     Wallet: WalletModal,
     Room: RoomModal,
     Friends: FriendsModal,
-    Profile: ProfileModal
+    Profile: ProfileModal,
+    Help: HelpModal
 };
 
 export default {
@@ -112,10 +114,10 @@ body.show { overflow: hidden; }
             color: rgba(255, 255, 255, 0.6);
             cursor: pointer;
             z-index: 70;
-            font-size: 1.15em;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
+            font-size: 1.1em;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
             width: 32px;
             height: 32px;
             display: flex;
@@ -127,9 +129,9 @@ body.show { overflow: hidden; }
 
             &:hover {
                 color: #fff;
-                background: rgba(229, 31, 73, 0.85);
-                border-color: #e51f49;
-                transform: scale(1.05);
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.18);
+                transform: none;
             }
         }
     }

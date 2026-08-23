@@ -821,7 +821,8 @@
                     "description": "A lista de vagas está disponível <a href=\"/job\">nesta página</a>. Tenha em mente que ela pode ficar vazia por um bom tempo – nem sempre precisamos de pessoas novas na equipe."
                 }
             }
-        }
+        },
+        "title": "Ajuda & Justiça Provável"
     },
     "invest": {
         "sidebar": {

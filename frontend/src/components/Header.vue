@@ -141,17 +141,18 @@ header {
                 align-items: center;
                 gap: 6px;
                 font-weight: 700;
-                background: rgba(255, 255, 255, 0.06);
-                padding: 6px 16px;
-                border-radius: 20px;
+                background: rgba(255, 255, 255, 0.05);
+                padding: 6px 14px;
+                border-radius: 8px;
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 cursor: pointer;
                 transition: all 0.2s ease;
+                height: 38px;
 
                 &:hover {
-                    background: rgba(229, 31, 73, 0.15);
-                    border-color: rgba(229, 31, 73, 0.4);
-                    transform: translateY(-1px);
+                    background: rgba(255, 255, 255, 0.08);
+                    border-color: rgba(255, 255, 255, 0.14);
+                    color: #fff;
                 }
 
                 .wallet-icon {
@@ -160,18 +161,18 @@ header {
                 }
 
                 .wallet-currency {
-                    font-size: .75em;
+                    font-size: .78em;
                     opacity: .65;
                     font-weight: 600;
                 }
 
                 .wallet-add-badge {
-                    margin-left: 4px;
+                    margin-left: 6px;
                     width: 18px;
                     height: 18px;
-                    border-radius: 50%;
-                    background: #e51f49;
-                    color: #fff;
+                    border-radius: 4px;
+                    background: rgba(229, 31, 73, 0.2);
+                    color: #e51f49;
                     display: inline-flex;
                     align-items: center;
                     justify-content: center;
@@ -183,22 +184,38 @@ header {
         .right {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             margin-left: auto;
 
-            .feature-buttons i {
-                margin: 0 6px;
-                font-size: 1.15em;
-                opacity: .7;
-                cursor: pointer;
-                padding: 8px;
-                border-radius: 50%;
-                transition: opacity .2s ease, background .2s ease, color .2s ease;
+            .feature-buttons {
+                display: flex;
+                align-items: center;
+                gap: 4px;
 
-                &:hover {
+                i {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 8px;
+                    font-size: 1.05em;
+                    background: rgba(255, 255, 255, 0.04);
+                    border: 1px solid rgba(255, 255, 255, 0.06);
+                    color: rgba(255, 255, 255, 0.7);
                     opacity: 1;
-                    color: #e51f49;
-                    background: rgba(229, 31, 73, 0.12);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+
+                    &:hover {
+                        background: rgba(255, 255, 255, 0.08);
+                        border-color: rgba(255, 255, 255, 0.12);
+                        color: #fff;
+                    }
+
+                    &:active {
+                        color: #e51f49;
+                    }
                 }
             }
 
@@ -206,23 +223,23 @@ header {
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                padding: 4px 10px;
-                border-radius: 20px;
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                padding: 0 12px;
+                height: 38px;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.06);
                 cursor: pointer;
                 transition: all 0.2s ease;
-                margin-right: 6px;
 
                 &:hover {
-                    background: rgba(229, 31, 73, 0.15);
-                    border-color: rgba(229, 31, 73, 0.4);
+                    background: rgba(255, 255, 255, 0.08);
+                    border-color: rgba(255, 255, 255, 0.12);
                 }
 
                 .header-avatar {
-                    width: 26px;
-                    height: 26px;
-                    border-radius: 50%;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 6px;
                     object-fit: cover;
                     border: 1px solid rgba(255, 255, 255, 0.2);
                 }
@@ -235,51 +252,40 @@ header {
             }
 
             .btn {
-                padding: 9px 20px;
-                border-radius: 200px;
+                padding: 0 16px;
+                height: 38px;
+                border-radius: 8px;
                 font-size: 0.92rem;
                 font-weight: 700;
                 letter-spacing: 0.02em;
                 cursor: pointer;
-                transition: all 0.25s ease;
+                transition: all 0.2s ease;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
             }
 
             .btn-login {
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.05);
                 color: #ffffff !important;
-                border: 1px solid rgba(255, 255, 255, 0.22);
+                border: 1px solid rgba(255, 255, 255, 0.12);
 
                 &:hover {
-                    background: rgba(255, 255, 255, 0.18);
-                    border-color: rgba(255, 255, 255, 0.45);
-                    transform: translateY(-1px);
+                    background: rgba(255, 255, 255, 0.08);
+                    border-color: rgba(255, 255, 255, 0.2);
                 }
             }
 
             .btn-register {
                 background: #e51f49 !important;
                 color: #ffffff !important;
-                border: none !important;
+                border: 1px solid #e51f49 !important;
                 box-shadow: none !important;
 
                 &:hover {
                     background: #ff2a55 !important;
+                    border-color: #ff2a55 !important;
                     box-shadow: none !important;
-                    transform: none;
-                }
-            }
-
-            .btn-signout {
-                background: transparent;
-                color: rgba(255, 255, 255, 0.7);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-
-                &:hover {
-                    color: #fff;
-                    border-color: rgba(255, 255, 255, 0.4);
                 }
             }
         }

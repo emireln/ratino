@@ -10,6 +10,10 @@ export default {
         sound() { return useAppStore().sound; },
         quick() { return useAppStore().quick; }
     },
+    watch: {
+        sound() { this.renderButtons(); },
+        quick() { this.renderButtons(); }
+    },
     methods: {
         renderButtons() {
             const footer = document.querySelector('.game-footer');
@@ -36,19 +40,16 @@ export default {
             buttons.forEach((name) => {
                 switch (name) {
                     case 'help':
-                        createButton('fas fa-question-circle', 'Help / Fairness', () => {
-                            window.open('/fairness', '_blank');
+                        createButton('fas fa-question-circle', 'Help & Fairness Center', () => {
+                            useModal().open('Help', {}, 'help.title');
                         });
                         break;
                     case 'sound': {
                         const store = useAppStore();
                         const soundIcon = store.sound ? 'fas fa-volume-up' : 'fas fa-volume-mute';
-                        createButton(soundIcon, 'Sound Toggle', (btn) => {
+                        createButton(soundIcon, store.sound ? 'Mute Sound' : 'Unmute Sound', () => {
                             store.setSoundState(!store.sound);
-                            const iconEl = btn.querySelector('i');
-                            if (iconEl) {
-                                iconEl.className = store.sound ? 'fas fa-volume-up' : 'fas fa-volume-mute';
-                            }
+                            this.renderButtons();
                         }, store.sound);
                         break;
                     }
@@ -59,9 +60,9 @@ export default {
                         break;
                     case 'quick': {
                         const store = useAppStore();
-                        createButton('fas fa-bolt', 'Quick Bet Mode', (btn) => {
+                        createButton('fas fa-bolt', 'Quick Bet Mode', () => {
                             store.setQuickState(!store.quick);
-                            btn.classList.toggle('active', store.quick);
+                            this.renderButtons();
                         }, store.quick);
                         break;
                     }
