@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/whisper', [WhisperController::class, 'whisper'])->middleware('throttle:120,1');
 
 Route::prefix('data')->middleware('throttle:120,1')->group(function () {
-    Route::post('/games', [DataController::class, 'games']);
-    Route::post('/currencies', [DataController::class, 'currencies']);
+    Route::match(['get', 'post'], '/games', [DataController::class, 'games']);
+    Route::match(['get', 'post'], '/currencies', [DataController::class, 'currencies']);
 });
 
 Route::prefix('auth')->group(function () {

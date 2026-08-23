@@ -34,8 +34,7 @@ export const useAppStore = defineStore('app', {
     }),
 
     getters: {
-        isGuest: (state) => !state.user,
-        demo: (state) => state.user ? state.demo : true
+        isGuest: (state) => !state.user
     },
 
     actions: {
