@@ -16,6 +16,8 @@ import Modal from './modals/Modal.vue';
 import Sidebar from './Sidebar.vue';
 import Header from './Header.vue';
 import { useAppStore } from '../stores/app';
+import { connectRealtime } from '../lib/echo';
+import bus from '../lib/bus';
 
 export default {
     components: { Modal, Sidebar, Header },
@@ -24,6 +26,26 @@ export default {
         store.changeLocale(store.locale);
         store.updateData();
         if (store.token) store.update();
+        if (store.user && store.user._id) connectRealtime(store.user._id);
+
+        bus.on('event:balanceModification', (e) => {
+            if (!e) return;
+            const currId = e.currency || 'credits';
+            if (store.currencies && store.currencies[currId]) {
+                if (e.demo) {
+                    store.currencies[currId].balance.demo = e.demo_balance ?? e.balance;
+                } else {
+                    store.currencies[currId].balance.real = e.balance;
+                }
+            }
+            if (store.user) {
+                if (e.demo) {
+                    store.user.demo_credits = e.demo_balance ?? e.balance;
+                } else {
+                    store.user.credits = e.balance;
+                }
+            }
+        });
     }
 };
 </script>

@@ -36,7 +36,6 @@
                             <img :src="store.user.avatar || '/img/misc/incognito-default.png'" class="header-avatar" alt="">
                             <span class="account-name">{{ store.user.name }}</span>
                         </div>
-                        <button class="btn btn-signout" @click="logout">Sign out</button>
                     </div>
                 </div>
             </div>

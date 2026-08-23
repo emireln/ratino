@@ -1,9 +1,22 @@
 import axios from 'axios';
 
+const savedToken = localStorage.getItem('ratino_token');
+
 const client = axios.create({
     baseURL: '/',
     withCredentials: true,
-    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        ...(savedToken ? { 'Authorization': `Bearer ${savedToken}` } : {})
+    }
+});
+
+client.interceptors.request.use((config) => {
+    const token = localStorage.getItem('ratino_token');
+    if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
 });
 
 export function setToken(token) {

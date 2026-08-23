@@ -92,11 +92,18 @@
                 </div>
             </div>
         </div>
+
+        <div class="profile-signout-section">
+            <button class="btn btn-profile-signout" @click="logout">
+                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
+            </button>
+        </div>
     </div>
 </template>
 
 <script>
 import { useAppStore } from '../../stores/app';
+import { useModal } from '../../composables/useModal';
 import client from '../../lib/whisper';
 
 const VIP_COLORS = ['#cd7f32', '#c0c0c0', '#ffd700', '#00d2ff', '#b9f2ff', '#e056fd', '#ff2a55'];
@@ -200,6 +207,14 @@ export default {
             }).finally(() => {
                 this.saving = false;
             });
+        },
+        logout() {
+            client.post('/api/auth/logout').finally(() => {
+                this.store.logout();
+                useModal().close();
+                this.$router.push('/');
+                this.$toast.info('Signed out successfully.');
+            });
         }
     }
 };
@@ -210,6 +225,37 @@ export default {
 
 .profile-modal-content {
     width: 100%;
+}
+
+.profile-signout-section {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: center;
+
+    .btn-profile-signout {
+        width: 100%;
+        padding: 12px 20px;
+        background: rgba(229, 31, 73, 0.1);
+        border: 1px solid rgba(229, 31, 73, 0.25);
+        color: #ff4d6d;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.95em;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: #e51f49;
+            color: #fff;
+            border-color: #e51f49;
+        }
+    }
 }
 
 .profile-header {
