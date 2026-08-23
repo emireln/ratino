@@ -282,7 +282,7 @@ export default {
 }
 
 .game-stage-container {
-    background: #141622;
+    background: rgba(18, 19, 24, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 24px;
@@ -296,7 +296,7 @@ export default {
 }
 
 .game-sidebar-container {
-    background: #141622;
+    background: rgba(18, 19, 24, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 16px;

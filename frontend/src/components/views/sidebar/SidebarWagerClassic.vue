@@ -2,7 +2,7 @@
     <div class="wager-classic">
         <div class="wager-row">
             <span>1/2</span>
-            <input type="number" v-model.number="bet" :min="1" step="1" @change="commit">
+            <input type="number" v-model.number="bet" :min="1" step="1" @input="commit">
             <span>2x</span>
         </div>
     </div>

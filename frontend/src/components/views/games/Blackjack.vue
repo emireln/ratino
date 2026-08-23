@@ -251,7 +251,7 @@
         double() {
             this.vm.sendTurn({ type: 'double' }, (response) => {
                 if(response.data.error) {
-                    this.vm.$toast.error(this.vm.$t('general.error.invalid_error'));
+                    this.vm.$toast.error(this.vm.$t('general.error.unknown_error'));
                     return;
                 }
                 this.vm.player.hit(true);

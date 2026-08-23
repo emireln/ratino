@@ -42,11 +42,24 @@
             </div>
             <div class="rooms-list" v-if="rooms.length">
                 <div class="room-item" v-for="r in rooms" :key="r.code">
+                    <template v-if="editingCode === r.code">
+                        <div class="room-edit-group">
+                            <input v-model="editName" type="text" maxlength="32" @keyup.enter="saveEdit(r.code)">
+                            <button class="btn btn-join-sm" @click="saveEdit(r.code)">Save</button>
+                            <button class="btn btn-join-sm btn-cancel-sm" @click="cancelEdit">Cancel</button>
+                        </div>
+                    </template>
                     <div class="room-item-info">
                         <div class="item-name">{{ r.name }}</div>
                         <div class="item-meta"><i class="fas fa-user-friends"></i> {{ r.members }} players &bull; Code: <strong>{{ r.code }}</strong></div>
                     </div>
-                    <button class="btn btn-join-sm" @click="joinDirect(r.code)">Join</button>
+                    <div class="room-item-actions">
+                        <template v-if="r.owner">
+                            <button class="btn btn-join-sm" @click="startEdit(r)"><i class="fas fa-pen"></i></button>
+                            <button class="btn btn-join-sm btn-delete-sm" @click="deleteRoom(r.code)"><i class="fas fa-trash"></i></button>
+                        </template>
+                        <button v-else class="btn btn-join-sm" @click="joinDirect(r.code)">Join</button>
+                    </div>
                 </div>
             </div>
             <div class="rooms-empty" v-else-if="loadingRooms">
@@ -82,7 +95,9 @@ export default {
             joinCode: '',
             createName: '',
             creating: false,
-            loadingRooms: false
+            loadingRooms: false,
+            editingCode: null,
+            editName: ''
         };
     },
     methods: {
@@ -130,6 +145,41 @@ export default {
                 this.activeRoom = null;
                 localStorage.removeItem('ratino_active_room');
                 this.loadRooms();
+            });
+        },
+        startEdit(room) {
+            this.editingCode = room.code;
+            this.editName = room.name;
+        },
+        cancelEdit() {
+            this.editingCode = null;
+            this.editName = '';
+        },
+        saveEdit(code) {
+            const name = this.editName.trim();
+            if (!name) return;
+            whisper('Room', { action: 'update', code, name }).then((res) => {
+                this.$toast.success(`Room renamed to "${res.name}"`);
+                if (this.activeRoom && this.activeRoom.code === code) {
+                    this.activeRoom = res;
+                    localStorage.setItem('ratino_active_room', JSON.stringify(res));
+                }
+                this.cancelEdit();
+                this.loadRooms();
+            }).catch((c) => {
+                this.$toast.error(c === 5 ? 'Only the room owner can edit this room' : 'Error renaming room');
+            });
+        },
+        deleteRoom(code) {
+            whisper('Room', { action: 'delete', code }).then(() => {
+                this.$toast.info(`Room ${code} deleted`);
+                if (this.activeRoom && this.activeRoom.code === code) {
+                    this.activeRoom = null;
+                    localStorage.removeItem('ratino_active_room');
+                }
+                this.loadRooms();
+            }).catch((c) => {
+                this.$toast.error(c === 5 ? 'Only the room owner can delete this room' : 'Error deleting room');
             });
         },
         copyCode(code) {
@@ -370,6 +420,32 @@ export default {
             font-size: 0.78em;
             color: rgba(255, 255, 255, 0.5);
             margin-top: 2px;
+        }
+
+        .room-item-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-delete-sm {
+            &:hover {
+                background: #b91c1c;
+                border-color: #b91c1c;
+            }
+        }
+
+        .room-edit-group {
+            display: flex;
+            flex: 1;
+            gap: 6px;
+
+            input { flex: 1; }
+        }
+
+        .btn-cancel-sm {
+            opacity: .7;
+
+            &:hover { background: rgba(255, 255, 255, 0.12); }
         }
 
         .btn-join-sm {

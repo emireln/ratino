@@ -33,7 +33,7 @@ export function whisper(event, request = {}) {
         client.post('/api/whisper', { event, data: request })
             .then(({ data }) => {
                 if (data && data.message != null && data.errors != null) return reject(0);
-                if (data && data.code != null) return reject(data.code);
+                if (data && typeof data.code === 'number' && data.message != null) return reject(data.code);
                 resolve(data);
             })
             .catch(reject);

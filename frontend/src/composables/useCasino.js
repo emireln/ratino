@@ -52,6 +52,7 @@ export function useCasino() {
 
             createGameInstance(id, ref) {
                 let instance = store.gameInstance ?? { game: null, history: null, bettingType: 'manual', playTimeout: false };
+                instance.bet = instance.bet ?? 100;
                 instance.game = {
                     id,
                     data: {},

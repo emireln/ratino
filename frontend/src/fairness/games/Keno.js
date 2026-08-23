@@ -17,7 +17,7 @@ export default class Keno {
      */
     verify(seed_data) {
         const max_squares = 39;
-        const squares = ArrayUtils.generateArrayWithRange(0, max_squares);
+        const squares = ArrayUtils.generateArrayWithRange(1, max_squares + 1);
         return Seed.extractFloats(seed_data, 10).map((float, index) => squares.splice(Math.floor(float * (max_squares - index + 1)), 1)[0]);
     }
 
