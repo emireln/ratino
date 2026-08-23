@@ -26,7 +26,7 @@
                     <div class="vip-progress-bar" :style="{ width: status.progress + '%', background: color(status.tier) }"></div>
                 </div>
                 <div class="vip-progress-info">
-                    <span>{{ $t('vip.wagered') }}: <b>{{ format(status.wager) }}</b> $CHEDDAR</span>
+                    <span>{{ $t('vip.wagered') }}: <b>{{ format(status.wager) }}</b> Chips</span>
                     <span v-if="status.nextTier">{{ $t('vip.next_tier') }}: <b>{{ $t('vip.tier.' + status.nextTier) }}</b> — {{ format(status.nextWager) }}</span>
                     <span v-else>{{ $t('vip.max_tier') }}</span>
                 </div>
@@ -38,7 +38,7 @@
                     :style="{ borderColor: i <= status.tier ? color(i) : 'rgba(255,255,255,.08)' }">
                     <div class="vip-tier-icon" :style="{ color: color(i) }"><i :class="icon(i)"></i></div>
                     <div class="vip-tier-name">{{ $t('vip.tier.' + tier.name) }}</div>
-                    <div class="vip-tier-reward">{{ format(tier.reward) }} $CHEDDAR</div>
+                    <div class="vip-tier-reward">{{ format(tier.reward) }} Chips</div>
                     <div class="vip-tier-status">
                         <i v-if="tier.claimed" class="fas fa-check-circle" style="color: #2fd672"></i>
                         <span v-else-if="tier.reached" style="color: #ffd23f">{{ $t('vip.milestone_reached') }}</span>

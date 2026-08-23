@@ -14,7 +14,7 @@
 
         <div class="heist-result" v-if="result">
             <span class="heist-result-label">{{ $t('heist.won') }}</span>
-            <span class="heist-result-amount">{{ result.reward.toLocaleString() }} $CHEDDAR</span>
+            <span class="heist-result-amount">{{ result.reward.toLocaleString() }} Chips</span>
         </div>
 
         <div class="heist-actions">
@@ -77,7 +77,7 @@ export default {
                 setTimeout(() => {
                     this.result = { index: response.index, reward: response.reward };
                     this.spinning = false;
-                    this.$toast.success(`${this.$t('heist.won')} ${response.reward} $CHEDDAR`);
+                    this.$toast.success(`${this.$t('heist.won')} ${response.reward} Chips`);
                     useAppStore().updateData();
                 }, 4200);
             }).catch(() => this.spinning = false);

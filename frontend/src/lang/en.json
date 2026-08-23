@@ -872,12 +872,12 @@
             "platinum":"Platinum",
             "diamond":"Diamond",
             "master":"Master",
-            "god_of_cheese":"God of Cheese"
+            "legend":"Legend"
         },
         "rakeback_rate":"rakeback",
         "claim_rakeback":"Claim rakeback",
         "no_rakeback":"No rakeback yet",
-        "claimed":"Claimed {amount} $CHEDDAR",
+        "claimed":"Claimed {amount} Chips",
         "wagered":"Total wagered",
         "next_tier":"Next tier",
         "max_tier":"Max tier reached",
@@ -1027,7 +1027,7 @@
         "daily":"Daily",
         "weekly":"Weekly",
         "claimed":"Claimed",
-        "progress_unit":"$CHEDDAR"
+        "progress_unit":"Chips"
     },
     "chat":{
         "title":"Live Chat",
@@ -1045,7 +1045,7 @@
         "rain_fund":"Fund rain",
         "rain_funded":"{name} funded the rain!",
         "rain_global":"Rain is falling!",
-        "rain_sent":"Rain sent — everyone online got {share} $CHEDDAR",
+        "rain_sent":"Rain sent — everyone online got {share} Chips",
         "rain_balance":"Not enough balance for rain",
         "rain_nobody":"Nobody is online to rain on"
     },

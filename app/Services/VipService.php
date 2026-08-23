@@ -20,7 +20,7 @@ class VipService {
         ['name' => 'platinum','wager' => 300000,   'rakeback' => 0.025, 'milestone' => 35000],
         ['name' => 'diamond', 'wager' => 800000,   'rakeback' => 0.03, 'milestone' => 50000],
         ['name' => 'master',  'wager' => 2000000,  'rakeback' => 0.04, 'milestone' => 75000],
-        ['name' => 'god_of_cheese', 'wager' => 5000000, 'rakeback' => 0.05, 'milestone' => 100000]
+        ['name' => 'legend',  'wager' => 5000000,  'rakeback' => 0.05, 'milestone' => 100000]
     ];
 
     public static function tier(int $index): array {

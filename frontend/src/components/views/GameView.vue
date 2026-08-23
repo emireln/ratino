@@ -5,10 +5,10 @@
             <div class="auth-gate-card">
                 <div class="gate-icon"><i class="fas fa-lock"></i></div>
                 <h3>Sign in to Play</h3>
-                <p>Join RATINO to place real bets with $CHEDDAR credits, chat with players, and win.</p>
+                <p>Join RATINO to place real bets with Chips, chat with players, and win.</p>
                 <div class="gate-buttons">
                     <button class="btn btn-gate-login" @click="openAuth('login')">Sign In</button>
-                    <button class="btn btn-gate-register" @click="openAuth('register')">Register (+10k Cheddar)</button>
+                    <button class="btn btn-gate-register" @click="openAuth('register')">Register (+10k Chips)</button>
                 </div>
             </div>
         </div>

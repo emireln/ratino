@@ -31,13 +31,13 @@
                     <i class="fas fa-cloud-rain"></i>
                     <span v-if="message.data.funder">{{ $t('chat.rain_funded', { name: message.data.funder }) }}</span>
                     <span v-else>{{ $t('chat.rain_global') }}</span>
-                    — {{ Number(message.data.reward).toLocaleString() }} $CHEDDAR
+                    — {{ Number(message.data.reward).toLocaleString() }} Chips
                     <span class="chat-rain-users" v-if="message.data.users && message.data.users.length">× {{ message.data.users.length }}</span>
                 </div>
                 <div v-else-if="message.type === 'tip'" class="chat-tip">
                     <i class="fas fa-hand-holding-usd"></i>
                     <b>{{ message.data.from }}</b> → <b>{{ message.data.to }}</b>:
-                    <span class="text-success">{{ Number(message.data.amount).toLocaleString() }} $CHEDDAR</span>
+                    <span class="text-success">{{ Number(message.data.amount).toLocaleString() }} Chips</span>
                 </div>
                 <div v-else class="chat-message">
                     <img :src="message.user.avatar || '/img/misc/incognito-default.png'" :style="{ borderColor: vipColor(message.vipLevel) }" alt>

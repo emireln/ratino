@@ -41,30 +41,30 @@ class WalletWhisper extends Whisper {
             }
 
             $amount = 5000;
-            $balance->add($amount, ['type' => 'weekly_drop', 'note' => 'Weekly Cheddar Drop']);
+            $balance->add($amount, ['type' => 'weekly_drop', 'note' => 'Weekly Chips Drop']);
             $this->user->update(['weekly_drop_claimed' => Carbon::now()]);
 
             return [
                 'success' => true,
                 'amount' => $amount,
                 'new_balance' => $balance->get(),
-                'message' => 'Claimed 5,000 $CHEDDAR weekly drop!'
+                'message' => 'Claimed 5,000 Chips weekly drop!'
             ];
         }
 
         if ($action === 'faucet') {
             if ($balance->get() >= 50) {
-                return ['code' => 3, 'message' => 'Faucet only available when balance is below 50 $CHEDDAR'];
+                return ['code' => 3, 'message' => 'Refill only available when balance is below 50 Chips'];
             }
 
             $amount = 500;
-            $balance->add($amount, ['type' => 'faucet', 'note' => 'Emergency Cheese Faucet']);
+            $balance->add($amount, ['type' => 'faucet', 'note' => 'Emergency Chips Refill']);
 
             return [
                 'success' => true,
                 'amount' => $amount,
                 'new_balance' => $balance->get(),
-                'message' => 'Added 500 $CHEDDAR reload!'
+                'message' => 'Added 500 Chips reload!'
             ];
         }
 

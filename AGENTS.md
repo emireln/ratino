@@ -1,6 +1,6 @@
 # AGENTS.md — RATINO
 
-Casino platform for friends. Laravel 12 + PHP 8.5 backend, MongoDB, Vue 3 + Pinia + Vite frontend, Laravel Reverb realtime. Single virtual currency: $CHEDDAR. No banking, no crypto, no payments.
+Casino platform for friends. Laravel 12 + PHP 8.5 backend, MongoDB, Vue 3 + Pinia + Vite frontend, Laravel Reverb realtime. Single virtual currency: CHIPS. No banking, no crypto, no payments.
 
 ## Talk (caveman)
 
@@ -61,7 +61,7 @@ Queue uses sqlite (DB_QUEUE_CONNECTION=sqlite); app data lives in MongoDB.
 - `frontend/src/` — Vue 3 SPA. `composables/useCasino.js` = global game mixin (whisper, pushStats, resultPopup, sendTurn, finishExtended, $store shim). `lib/echo.js` = Reverb bridge that emits bus events to GameView, which forwards to `multiplayerEvent()` on the active game.
 - `frontend/public/` — static assets (img, sounds, webfonts, favicons) — SOURCE OF TRUTH; copied to `public/` at build. Always drop assets here.
 - `scripts/make-favicon.php` — regenerates favicons (uses Midstar font when present in `frontend/public/webfonts/`, Arial Bold fallback otherwise).
-- Vault & Weekly Drops: `WalletWhisper` handles 5,000 $CHEDDAR weekly drops, faucet refills, demo reloads.
+- Vault & Weekly Drops: `WalletWhisper` handles 5,000 Chips weekly drops, faucet refills, demo reloads.
 - Friend Rooms: `RoomWhisper` handles private rooms, codes, member tracking, and room sharing.
 - Favorites & Auth: Star favorite games (`/favorites`), guest lock overlay on game views.
 

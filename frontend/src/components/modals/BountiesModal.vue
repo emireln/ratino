@@ -14,7 +14,7 @@
                         <i :class="bounty.claimed ? 'fas fa-check-circle' : 'far fa-circle'"></i>
                         <span>{{ bounty.title }}</span>
                     </div>
-                    <div class="bounty-reward">{{ fmt(bounty.reward) }} $CHEDDAR</div>
+                    <div class="bounty-reward">{{ fmt(bounty.reward) }} Chips</div>
                 </div>
                 <div class="bounty-progress">
                     <div class="bounty-progress-bar" :class="bounty.completed ? 'done' : ''" :style="{ width: pct(bounty) + '%' }"></div>

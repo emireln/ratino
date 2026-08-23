@@ -7,8 +7,8 @@ use App\Models\Transaction;
 use App\Currency\Currency;
 
 /**
- * Daily Sewer Heist — one free spin per 24h per account. Tiered rewards
- * from 100 to a 50,000 $CHEDDAR jackpot. Weights keep the jackpot rare.
+ * Daily Vault Heist — one free spin per 24h per account. Tiered rewards
+ * from 100 to a 50,000 Chips jackpot. Weights keep the jackpot rare.
  */
 class HeistService {
 
@@ -62,7 +62,7 @@ class HeistService {
 
         $segment = self::SEGMENTS[$index];
         $user->update(['heist_claimed' => now()]);
-        $user->balance(Currency::find('credits'))->add($segment['reward'], Transaction::builder()->message('Daily Sewer Heist')->get());
+        $user->balance(Currency::find('credits'))->add($segment['reward'], Transaction::builder()->message('Daily Vault Heist')->get());
 
         return ['index' => $index, 'reward' => $segment['reward']];
     }

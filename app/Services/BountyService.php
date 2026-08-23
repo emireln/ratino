@@ -27,11 +27,11 @@ class BountyService {
         ['id' => 'daily_coinflip_5',  'title' => 'Win 5 consecutive Coinflips',     'reward' => 2000,  'target' => 5, 'type' => 'streak', 'game' => 'coinflip'],
         ['id' => 'daily_dice_99x',    'title' => 'Roll a 99x+ hit in Dice',         'reward' => 1000,  'target' => 99, 'type' => 'game', 'game' => 'dice'],
         ['id' => 'daily_plinko_10x',  'title' => 'Hit 10x in Plinko',               'reward' => 500,   'target' => 10, 'type' => 'game', 'game' => 'plinko'],
-        ['id' => 'daily_wager_5000',  'title' => 'Wager 5,000 $CHEDDAR',            'reward' => 1500,  'target' => 5000, 'type' => 'wager']
+        ['id' => 'daily_wager_5000',  'title' => 'Wager 5,000 Chips',            'reward' => 1500,  'target' => 5000, 'type' => 'wager']
     ];
 
     public const WEEKLY = [
-        ['id' => 'weekly_wager_50000', 'title' => 'Wager 50,000 $CHEDDAR',          'reward' => 10000, 'target' => 50000, 'type' => 'wager'],
+        ['id' => 'weekly_wager_50000', 'title' => 'Wager 50,000 Chips',          'reward' => 10000, 'target' => 50000, 'type' => 'wager'],
         ['id' => 'weekly_any_50x',     'title' => 'Hit any 50x+ multiplier',        'reward' => 5000,  'target' => 50, 'type' => 'multiplier'],
         ['id' => 'weekly_slots_80x',   'title' => 'Hit 80x in Slots',               'reward' => 2500,  'target' => 80, 'type' => 'game', 'game' => 'slots'],
         ['id' => 'weekly_wins_50',     'title' => 'Win 50 games',                   'reward' => 5000,  'target' => 50, 'type' => 'wins']

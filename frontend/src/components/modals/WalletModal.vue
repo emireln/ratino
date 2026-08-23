@@ -5,12 +5,12 @@
                 <i class="fas fa-wallet"></i>
             </div>
             <div class="wallet-title">RATINO Vault & Drops</div>
-            <div class="wallet-subtitle">Manage your $CHEDDAR virtual balance and claim weekly money drops</div>
+            <div class="wallet-subtitle">Manage your Chips virtual balance and claim weekly money drops</div>
         </div>
 
         <div class="wallet-balance-cards">
             <div class="balance-card primary-card">
-                <div class="card-label"><i class="fas fa-cheese"></i> Real Virtual Balance</div>
+                <div class="card-label"><i class="fas fa-coins"></i> Real Chips Balance</div>
                 <div class="card-value" v-if="store.currencies[store.currency]">
                     <unit :to="store.currency" :value="store.currencies[store.currency].balance.real"></unit>
                     <span class="currency-tag">{{ store.currencies[store.currency].name }}</span>
@@ -29,7 +29,7 @@
             <div class="drop-banner">
                 <div class="drop-info">
                     <div class="drop-tag"><i class="fas fa-gift"></i> WEEKLY MONEY DROP</div>
-                    <div class="drop-amount">+5,000 $CHEDDAR</div>
+                    <div class="drop-amount">+5,000 CHIPS</div>
                     <div class="drop-timer" v-if="!info.can_claim_weekly">
                         Next drop available in: <span class="countdown">{{ formatTime(info.next_weekly_in) }}</span>
                     </div>
@@ -39,7 +39,7 @@
                 </div>
                 <button class="btn btn-claim-drop" @click="claimWeeklyDrop" :disabled="!info.can_claim_weekly || claimingDrop">
                     <span v-if="claimingDrop"><i class="fas fa-spinner fa-spin"></i> Claiming...</span>
-                    <span v-else-if="info.can_claim_weekly"><i class="fas fa-hand-holding-usd"></i> Claim 5,000 $CHEDDAR</span>
+                    <span v-else-if="info.can_claim_weekly"><i class="fas fa-hand-holding-usd"></i> Claim 5,000 Chips</span>
                     <span v-else><i class="fas fa-lock"></i> Claimed</span>
                 </button>
             </div>
@@ -47,8 +47,8 @@
             <div class="quick-reloads">
                 <div class="reload-card">
                     <div class="reload-left">
-                        <div class="reload-title"><i class="fas fa-faucet"></i> Emergency Cheese Faucet</div>
-                        <div class="reload-desc">Get +500 $CHEDDAR if your balance drops below 50</div>
+                        <div class="reload-title"><i class="fas fa-faucet"></i> Emergency Chips Refill</div>
+                        <div class="reload-desc">Get +500 Chips if your balance drops below 50</div>
                     </div>
                     <button class="btn btn-faucet" @click="claimFaucet" :disabled="!info.can_claim_faucet || claimingFaucet">
                         <span v-if="claimingFaucet"><i class="fas fa-spinner fa-spin"></i></span>
@@ -102,7 +102,7 @@ export default {
         claimWeeklyDrop() {
             this.claimingDrop = true;
             whisper('Wallet', { action: 'weekly_drop' }).then((res) => {
-                this.$toast.success(res.message || 'Claimed 5,000 $CHEDDAR!');
+                this.$toast.success(res.message || 'Claimed 5,000 Chips!');
                 this.store.updateData();
                 this.store.update();
                 this.loadInfo();
@@ -115,12 +115,12 @@ export default {
         claimFaucet() {
             this.claimingFaucet = true;
             whisper('Wallet', { action: 'faucet' }).then((res) => {
-                this.$toast.success(res.message || 'Added 500 $CHEDDAR reload!');
+                this.$toast.success(res.message || 'Added 500 Chips reload!');
                 this.store.updateData();
                 this.store.update();
                 this.loadInfo();
             }).catch(() => {
-                this.$toast.error('Faucet only available when balance is low (<50)');
+                this.$toast.error('Refill only available when balance is low (<50)');
             }).finally(() => {
                 this.claimingFaucet = false;
             });

@@ -50,14 +50,14 @@ Multiplayer chains: `php artisan game:chain all`. Rain drops: scheduled (`win5x:
 - **18 provably-fair games** (HMAC-SHA256 server seed / client seed / nonce), ported verbatim:
   Mines, Dice, Wheel, Plinko, Coinflip, Tower, Keno, Stairs, Blackjack, Diamonds,
   Roulette (custom physics & ball landing), Crash, HiLo, Limbo, Slide, Baccarat, VideoPoker, Slots.
-- **Vault & Weekly Drops**: real virtual $CHEDDAR wallet, +5,000 $CHEDDAR weekly drop with countdown, emergency cheese faucet, and practice reloads.
+- **Vault & Weekly Drops**: real virtual Chips wallet, +5,000 Chips weekly drop with countdown, emergency refill faucet, and practice reloads.
 - **Friend Rooms**: create and join private casino tables with 6-character room codes (`/room/:code`) and share with friends.
 - **Favorites & Gating**: star favorite games, dedicated `/favorites` view, auth-gated game access.
 - **Realtime rooms**: presence channels per chat room (global + private rooms),
   `/tip username amount`, user-funded rain, live bets feed pushed on every finished game,
   live balance updates on a private channel.
-- **VIP club**: 7 cheese tiers, instant rakeback accrual on every bet, auto milestone payouts.
-- **Daily Sewer Heist** wheel (24h cooldown), **daily/weekly bounties** with automatic
+- **VIP club**: 7 VIP tiers (Bronze to Legend), instant rakeback accrual on every bet, auto milestone payouts.
+- **Daily Vault Heist** wheel (24h cooldown), **daily/weekly bounties** with automatic
   verification + payout, **leaderboards** (daily/weekly/all-time × wager/multiplier),
   **session stats** with live profit graph.
 - **BYOK AI assistant** — Gemini/OpenAI key stays in the browser; direct provider calls only.

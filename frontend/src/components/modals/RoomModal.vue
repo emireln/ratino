@@ -60,7 +60,7 @@
         <div class="tab-pane" v-if="tab === 'create'">
             <div class="create-form">
                 <label class="form-label">Room Name</label>
-                <input v-model="createName" type="text" placeholder="e.g. The Cheese Vault" @keyup.enter="createRoom">
+                <input v-model="createName" type="text" placeholder="e.g. High Rollers Lounge" @keyup.enter="createRoom">
                 <button class="btn btn-primary-action mt-3" @click="createRoom" :disabled="!createName.trim() || creating">
                     <span v-if="creating"><i class="fas fa-spinner fa-spin"></i> Creating...</span>
                     <span v-else><i class="fas fa-plus"></i> Create Private Room</span>
