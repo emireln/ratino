@@ -296,6 +296,67 @@ header {
 }
 
 @media(max-width: 991px) {
-    header .account-name { display: none; }
+    header {
+        .header-container {
+            padding: 0 4px;
+
+            .logo img {
+                height: 30px;
+                max-width: 105px;
+            }
+
+            .header-center {
+                position: static;
+                transform: none;
+                margin: 0 auto;
+
+                .wallet {
+                    padding: 4px 10px;
+                    height: 34px;
+                    font-size: 0.85em;
+
+                    .wallet-currency {
+                        display: none;
+                    }
+                }
+            }
+
+            .right {
+                gap: 4px;
+
+                .feature-buttons i {
+                    width: 34px;
+                    height: 34px;
+                    font-size: 0.95em;
+                }
+
+                .account-profile-trigger {
+                    padding: 0 4px;
+                    height: 34px;
+
+                    .account-name {
+                        display: none;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media(max-width: 576px) {
+    header {
+        .header-container {
+            .feature-buttons {
+                i:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(6)):not(:nth-child(8)) {
+                    display: none; /* Keep Rooms, Friends, Chat, AI on mobile */
+                }
+            }
+
+            .logo img {
+                height: 26px;
+                max-width: 80px;
+            }
+        }
+    }
 }
 </style>

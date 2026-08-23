@@ -6,12 +6,12 @@
 export const PROVIDERS = {
     gemini: {
         name: 'Google Gemini',
-        model: 'gemini-2.0-flash',
-        endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+        model: 'gemini-2.5-flash',
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
     },
     openai: {
         name: 'OpenAI',
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         endpoint: 'https://api.openai.com/v1/chat/completions'
     }
 };

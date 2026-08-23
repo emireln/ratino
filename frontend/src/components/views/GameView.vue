@@ -14,16 +14,20 @@
         </div>
 
         <div :class="`game-container game-${$route.params.id}`" v-if="store.user">
-            <div class="row">
+            <div class="row align-items-stretch">
                 <div class="col-12 col-lg-3">
-                    <game-sidebar></game-sidebar>
+                    <div class="game-sidebar-container">
+                        <game-sidebar></game-sidebar>
+                    </div>
                 </div>
                 <div class="col-12 col-lg-9">
-                    <div :class="`game-content game-content-${$route.params.id} game-type-local`">
-                        <component ref="gameComponent" :is="component" :key="$route.params.id" v-if="component"></component>
-                        <div v-else class="game-missing">
-                            <i class="fas fa-dice"></i>
-                            <div>Game not found</div>
+                    <div class="game-stage-container">
+                        <div :class="`game-content game-content-${$route.params.id} game-type-local`">
+                            <component ref="gameComponent" :is="component" :key="$route.params.id" v-if="component"></component>
+                            <div v-else class="game-missing">
+                                <i class="fas fa-dice"></i>
+                                <div>Game not found</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -277,9 +281,33 @@ export default {
     user-select: none;
 }
 
+.game-stage-container {
+    background: #141622;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    position: relative;
+    min-height: 520px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.game-sidebar-container {
+    background: #141622;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    height: 100%;
+}
+
 .game-content {
     min-height: 420px;
     position: relative;
+    width: 100%;
 }
 
 .game-footer {
@@ -335,6 +363,16 @@ export default {
 }
 
 @media(max-width: 991px) {
+    .game-sidebar-container {
+        margin-bottom: 16px;
+        height: auto;
+    }
+
+    .game-stage-container {
+        padding: 16px 10px;
+        min-height: 380px;
+    }
+
     .game-footer {
         left: 0;
         bottom: 14px;

@@ -207,4 +207,10 @@ export default {
     opacity: 0;
     transform: translateY(-50%) translateX(-4px);
 }
+
+@media(max-width: 991px) {
+    .sidebar {
+        display: none !important;
+    }
+}
 </style>

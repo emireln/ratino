@@ -9,18 +9,18 @@
             <div v-for="(m, i) in messages" :key="i" :class="['ai-msg', m.role]">
                 <div class="ai-msg-icon">
                     <i class="fas fa-user" v-if="m.role === 'user'"></i>
-                    <img :src="`/img/misc/${provider === 'gemini' ? 'gemini-icon.svg' : 'openai-icon.svg'}`" alt="AI" class="ai-chat-avatar" v-else>
+                    <i class="fas fa-wand-magic-sparkles ai-assist-icon" v-else></i>
                 </div>
                 <div class="ai-msg-bubble">{{ m.content }}</div>
             </div>
             <div class="ai-msg ai-typing" v-if="typing">
                 <div class="ai-msg-icon">
-                    <img :src="`/img/misc/${provider === 'gemini' ? 'gemini-icon.svg' : 'openai-icon.svg'}`" alt="AI" class="ai-chat-avatar">
+                    <i class="fas fa-wand-magic-sparkles ai-assist-icon"></i>
                 </div>
                 <div class="ai-msg-bubble ai-dots"><span></span><span></span><span></span></div>
             </div>
             <div class="ai-empty" v-if="!messages.length">
-                <img :src="`/img/misc/${provider === 'gemini' ? 'gemini-icon.svg' : 'openai-icon.svg'}`" alt="AI" class="ai-empty-avatar">
+                <div class="ai-empty-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
                 <div>{{ $t('ai.welcome') }}</div>
             </div>
         </div>
@@ -151,10 +151,9 @@ export default {
                 background: rgba(255, 255, 255, .07);
             }
 
-            .ai-chat-avatar {
-                width: 18px;
-                height: 18px;
-                object-fit: contain;
+            .ai-assist-icon {
+                font-size: 0.95em;
+                color: #ff476d;
             }
 
             .ai-msg-bubble {
@@ -177,9 +176,16 @@ export default {
                 }
             }
 
-            &.assistant .ai-msg-bubble {
-                background: rgba(255, 255, 255, .08);
-                border-top-left-radius: 3px;
+            &.assistant {
+                .ai-msg-icon {
+                    background: rgba(229, 31, 73, 0.15);
+                    border: 1px solid rgba(229, 31, 73, 0.3);
+                }
+
+                .ai-msg-bubble {
+                    background: rgba(255, 255, 255, .08);
+                    border-top-left-radius: 3px;
+                }
             }
         }
 
@@ -206,18 +212,23 @@ export default {
             display: flex;
             flex-direction: column;
             align-items: center;
-            opacity: .6;
+            opacity: .7;
             text-align: center;
             padding: 0 30px;
 
-            .ai-empty-avatar {
-                width: 36px;
-                height: 36px;
+            .ai-empty-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                background: rgba(229, 31, 73, 0.15);
+                border: 1px solid rgba(229, 31, 73, 0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 margin-bottom: 12px;
-                opacity: 0.85;
+                color: #ff476d;
+                font-size: 1.4em;
             }
-
-            i { font-size: 2.2em; margin-bottom: 10px; }
         }
     }
 
