@@ -22,7 +22,7 @@ export default {
         });
     },
     beforeUnmount() {
-        if (this.unsub) this.unsub();
+        if (typeof this.unsub === 'function') this.unsub();
     }
 };
 </script>

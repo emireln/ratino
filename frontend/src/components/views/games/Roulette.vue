@@ -237,7 +237,7 @@
             }
         },
         beforeUnmount() {
-            if(this.unsubChipSelect) this.unsubChipSelect();
+            if(typeof this.unsubChipSelect === 'function') this.unsubChipSelect();
             if(this._rafId) cancelAnimationFrame(this._rafId);
         },
         methods: {

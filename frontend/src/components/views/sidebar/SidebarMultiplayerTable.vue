@@ -23,8 +23,8 @@ export default {
         this.clear = bus.on('sidebar:multiplayer:clear', () => this.players = []);
     },
     beforeUnmount() {
-        if (this.add) this.add();
-        if (this.clear) this.clear();
+        if (typeof this.add === 'function') this.add();
+        if (typeof this.clear === 'function') this.clear();
     }
 };
 </script>

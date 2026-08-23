@@ -40,7 +40,11 @@ export default {
         }));
     },
     beforeUnmount() {
-        if (this.unsubs) this.unsubs.forEach((unsub) => unsub());
+        if (Array.isArray(this.unsubs)) {
+            this.unsubs.forEach((unsub) => {
+                if (typeof unsub === 'function') unsub();
+            });
+        }
     }
 };
 </script>

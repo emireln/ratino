@@ -192,7 +192,7 @@
             });
         },
         beforeUnmount() {
-            if(this.unsubChipSelect) this.unsubChipSelect();
+            if(typeof this.unsubChipSelect === 'function') this.unsubChipSelect();
             clearInterval(window.timerInterval);
         },
         methods: {
