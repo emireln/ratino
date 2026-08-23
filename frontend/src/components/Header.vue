@@ -19,6 +19,7 @@
                         </div>
                         <div class="action feature-buttons">
                             <i class="fas fa-users" title="Rooms / Play with Friends" @click="open('Room')"></i>
+                            <i class="fas fa-user-friends" title="Friends & Social" @click="open('Friends')"></i>
                             <i class="fas fa-chart-line" :title="$t('session.stats')" @click="open('SessionStats')"></i>
                             <i class="fas fa-crown" :title="$t('vip.title')" @click="open('Vip')"></i>
                             <i class="fas fa-gift" :title="$t('heist.title')" @click="open('Heist')"></i>
@@ -38,7 +39,8 @@
 <script>
 import { useAppStore } from '../stores/app';
 import { useModal } from '../composables/useModal';
-import client from '../lib/whisper';
+import client, { whisper } from '../lib/whisper';
+import bus from '../lib/bus';
 
 export default {
     setup() {
@@ -56,7 +58,25 @@ export default {
                 this.store.logout();
                 this.$router.push('/');
             });
+        },
+        onSocialNotification(e) {
+            if (!e) return;
+            if (e.type === 'room_invite') {
+                this.$toast.info(`${e.data.inviter_name} invited you to room ${e.data.room_code}!`, {
+                    timeout: 8000
+                });
+            } else if (e.type === 'friend_request') {
+                this.$toast.info(`${e.data.from_name} sent you a friend request!`);
+            } else if (e.type === 'friend_accepted') {
+                this.$toast.success(`${e.data.friend_name} accepted your friend request!`);
+            }
         }
+    },
+    mounted() {
+        bus.on('event:socialNotification', this.onSocialNotification);
+    },
+    beforeUnmount() {
+        bus.off('event:socialNotification', this.onSocialNotification);
     }
 };
 </script>

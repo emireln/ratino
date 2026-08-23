@@ -54,15 +54,15 @@ Queue uses sqlite (DB_QUEUE_CONNECTION=sqlite); app data lives in MongoDB.
 
 - `app/Models/` — User (mongo + Sanctum tokens via custom PersonalAccessToken), Game, Chat, Room, Transaction, Settings, Modules, DisabledGame, MultiplayerGameState.
 - `app/Games/Kernel/` — provably-fair engine. `Game` abstract: `metadata()`, `process(Data)`, `result(ProvablyFairResult)`. Subtypes: QuickGame, ExtendedGame, MultiplayerGame. `Game::list()` registers the 18 games.
-- `app/Whisper/` — POST /api/whisper handlers (Play, Turn, Finish, GameData, RestoreData, Vip, ChatMessage, ChatHistory, Rain, Heist, Bounties, Leaderboard, LiveFeed, Room, Wallet). Registered in `Whisper::list()`.
+- `app/Whisper/` — POST /api/whisper handlers (Play, Turn, Finish, GameData, RestoreData, Vip, ChatMessage, ChatHistory, Rain, Heist, Bounties, Leaderboard, LiveFeed, Room, Wallet, Friend). Registered in `Whisper::list()`.
 - `app/Services/` — VipService, BountyService, HeistService, SupabaseService (optional auth + game_rounds ledger).
-- `app/Events/` — Reverb broadcasts: ChatMessage (presence `chat.{channel}`), LiveBet (`live`), BalanceModification (private `user.{id}`), Multiplayer* (`multiplayer.{game}`).
+- `app/Events/` — Reverb broadcasts: ChatMessage (presence `chat.{channel}`), LiveBet (`live`), BalanceModification (private `user.{id}`), SocialNotification (private `user.{id}`), FastReaction (`live`/`chat`), Multiplayer* (`multiplayer.{game}`).
 - `app/Jobs/Multiplayer/` — round chain jobs. `app/Console/Commands/` — Chain, Rain.
 - `frontend/src/` — Vue 3 SPA. `composables/useCasino.js` = global game mixin (whisper, pushStats, resultPopup, sendTurn, finishExtended, $store shim). `lib/echo.js` = Reverb bridge that emits bus events to GameView, which forwards to `multiplayerEvent()` on the active game.
 - `frontend/public/` — static assets (img, sounds, webfonts, favicons) — SOURCE OF TRUTH; copied to `public/` at build. Always drop assets here.
 - `scripts/make-favicon.php` — regenerates favicons (uses Midstar font when present in `frontend/public/webfonts/`, Arial Bold fallback otherwise).
 - Vault & Weekly Drops: `WalletWhisper` handles 5,000 Chips weekly drops, faucet refills, demo reloads.
-- Friend Rooms: `RoomWhisper` handles private rooms, codes, member tracking, and room sharing.
+- Friend Rooms & Social: `FriendWhisper` and `RoomWhisper` handle friend requests, online status, 1-click room invites, filtered live bets feed, and fast floating reactions.
 - Favorites & Auth: Star favorite games (`/favorites`), guest lock overlay on game views.
 
 ## Contracts

@@ -40,7 +40,8 @@ abstract class Whisper {
             'Leaderboard' => LeaderboardWhisper::class,
             'LiveFeed' => LiveFeedWhisper::class,
             'Room' => RoomWhisper::class,
-            'Wallet' => WalletWhisper::class
+            'Wallet' => WalletWhisper::class,
+            'Friend' => FriendWhisper::class
         ];
     }
 

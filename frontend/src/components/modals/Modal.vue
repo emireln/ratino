@@ -29,6 +29,7 @@ import AiSettingsModal from './AiSettingsModal.vue';
 import AiChatModal from './AiChatModal.vue';
 import WalletModal from './WalletModal.vue';
 import RoomModal from './RoomModal.vue';
+import FriendsModal from './FriendsModal.vue';
 
 const registry = {
     Auth: AuthModal,
@@ -41,7 +42,8 @@ const registry = {
     AiSettings: AiSettingsModal,
     AiChat: AiChatModal,
     Wallet: WalletModal,
-    Room: RoomModal
+    Room: RoomModal,
+    Friends: FriendsModal
 };
 
 export default {

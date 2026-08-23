@@ -29,20 +29,28 @@ export function installEcho() {
 export function connectRealtime(userId) {
     if (!echo || !userId) return;
 
-    // private balance updates
+    // private user channel for balance and social invites
     if (!window.__ratinoPrivate) {
         window.__ratinoPrivate = true;
-        echo.private(`user.${userId}`).listen('.BalanceModification', (e) => {
-            bus.emit('event:balanceModification', e);
-        });
+        echo.private(`user.${userId}`)
+            .listen('.BalanceModification', (e) => {
+                bus.emit('event:balanceModification', e);
+            })
+            .listen('.SocialNotification', (e) => {
+                bus.emit('event:socialNotification', e);
+            });
     }
 
-    // live bets feed
+    // live bets and public reactions feed
     if (!window.__ratinoLive) {
         window.__ratinoLive = true;
-        echo.channel('live').listen('.LiveBet', (e) => {
-            bus.emit('event:liveBet', e);
-        });
+        echo.channel('live')
+            .listen('.LiveBet', (e) => {
+                bus.emit('event:liveBet', e);
+            })
+            .listen('.FastReaction', (e) => {
+                bus.emit('event:fastReaction', e);
+            });
     }
 }
 
@@ -73,7 +81,8 @@ export function chatChannel(channel, userId, userName, avatar, vipLevel) {
     const ch = echo.join(`chat.${channel}`);
     window.__ratinoChat[channel] = ch;
 
-    ch.listen('.ChatMessage', (e) => bus.emit('event:chatMessage', e));
+    ch.listen('.ChatMessage', (e) => bus.emit('event:chatMessage', e))
+      .listen('.FastReaction', (e) => bus.emit('event:fastReaction', e));
 
     return ch;
 }

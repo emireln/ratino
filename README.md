@@ -51,7 +51,9 @@ Multiplayer chains: `php artisan game:chain all`. Rain drops: scheduled (`win5x:
   Mines, Dice, Wheel, Plinko, Coinflip, Tower, Keno, Stairs, Blackjack, Diamonds,
   Roulette (custom physics & ball landing), Crash, HiLo, Limbo, Slide, Baccarat, VideoPoker, Slots.
 - **Vault & Weekly Drops**: real virtual Chips wallet, +5,000 Chips weekly drop with countdown, emergency refill faucet, and practice reloads.
-- **Friend Rooms**: create and join private casino tables with 6-character room codes (`/room/:code`) and share with friends.
+- **Friends & Multiplayer Rooms**: add friends by username, live online/activity indicators, 1-click private room invites (`/room/:code`) with real-time WebSocket toast alerts.
+- **Filtered Live Bets**: realtime global live bets feed with tabs for All Bets, High Rollers, Lucky Multipliers (10x+), and Friends Only bets.
+- **Fast Floating Reactions**: animated emoji reaction dock (`🔥`, `🚀`, `💎`, `🤑`, `👏`, `💀`, `🤯`, `❤️`) that drops floating physics-driven reactions across player screens in real-time.
 - **Favorites & Gating**: star favorite games, dedicated `/favorites` view, auth-gated game access.
 - **Realtime rooms**: presence channels per chat room (global + private rooms),
   `/tip username amount`, user-funded rain, live bets feed pushed on every finished game,

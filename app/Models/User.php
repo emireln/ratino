@@ -31,7 +31,8 @@ class User extends Authenticatable {
         'credits', 'demo_credits',
 
         'vip_wager', 'vip_rakeback', 'vip_milestones',
-        'heist_claimed', 'bounties', 'streaks', 'last_activity', 'weekly_drop_claimed'
+        'heist_claimed', 'bounties', 'streaks', 'last_activity', 'weekly_drop_claimed',
+        'friends', 'friend_requests', 'active_game', 'active_room'
     ];
 
     protected $hidden = [
@@ -52,7 +53,9 @@ class User extends Authenticatable {
         'weekly_drop_claimed' => 'datetime',
         'bounties' => 'json',
         'streaks' => 'json',
-        'last_activity' => 'datetime'
+        'last_activity' => 'datetime',
+        'friends' => 'json',
+        'friend_requests' => 'json'
     ];
 
     public static function getIp() {

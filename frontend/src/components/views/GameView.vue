@@ -30,12 +30,16 @@
             </div>
         </div>
         <div class="game-footer" v-show="store.user"></div>
+
+        <!-- Realtime Fast Reactions Floating Bar -->
+        <fast-reactions :channel="`multiplayer.${$route.params.id}`"></fast-reactions>
     </div>
 </template>
 
 <script>
 import { defineAsyncComponent } from 'vue';
 import GameSidebar from './sidebar/GameSidebar.vue';
+import FastReactions from '../ui/FastReactions.vue';
 import { useAppStore } from '../../stores/app';
 import { useModal } from '../../composables/useModal';
 import bus from '../../lib/bus';
@@ -62,7 +66,7 @@ const games = {
 };
 
 export default {
-    components: { GameSidebar },
+    components: { GameSidebar, FastReactions },
     setup() {
         return { store: useAppStore() };
     },
