@@ -91,6 +91,8 @@
 
 <script>
 import { useAppStore } from '../stores/app';
+import { useModal } from '../composables/useModal';
+import { whisper } from '../lib/whisper';
 
 export default {
     props: {
@@ -119,6 +121,12 @@ export default {
             return this.favorites.includes(id);
         },
         toggleFavorite(id) {
+            if (!this.store.user) {
+                useModal().open('Auth', { type: 'login' });
+                this.$toast.info('Please sign in to favorite games.');
+                return;
+            }
+
             if (this.favorites.includes(id)) {
                 this.favorites = this.favorites.filter((item) => item !== id);
                 this.$toast.info('Removed from favorites');
@@ -127,6 +135,36 @@ export default {
                 this.$toast.success('Added to favorites!');
             }
             localStorage.setItem('ratino_favorites', JSON.stringify(this.favorites));
+
+            whisper('Friend', { action: 'toggle_favorite', game: id }).then((res) => {
+                if (res && res.favorites) {
+                    this.favorites = res.favorites;
+                    localStorage.setItem('ratino_favorites', JSON.stringify(this.favorites));
+                }
+            }).catch(() => {});
+        },
+        loadFavorites() {
+            if (this.store.user) {
+                if (this.store.user.favoriteGames && Array.isArray(this.store.user.favoriteGames)) {
+                    this.favorites = this.store.user.favoriteGames;
+                    localStorage.setItem('ratino_favorites', JSON.stringify(this.favorites));
+                }
+                whisper('Friend', { action: 'get_favorites' }).then((res) => {
+                    if (res && res.favorites) {
+                        this.favorites = res.favorites;
+                        localStorage.setItem('ratino_favorites', JSON.stringify(this.favorites));
+                    }
+                }).catch(() => {});
+            }
+        }
+    },
+    mounted() {
+        this.loadFavorites();
+    },
+    watch: {
+        'store.user'(newUser) {
+            if (newUser) this.loadFavorites();
+            else this.favorites = [];
         }
     }
 };

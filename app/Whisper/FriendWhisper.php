@@ -191,13 +191,27 @@ class FriendWhisper extends Whisper {
             return ['success' => true, 'message' => 'Invitation sent!'];
         }
 
-        if ($action === 'react') {
-            $emoji = $data->emoji ?? '🔥';
-            $channel = $data->channel ?? 'live';
+        if ($action === 'toggle_favorite') {
+            $gameId = $data->game ?? '';
+            if (empty($gameId)) return ['code' => 9, 'message' => 'Game ID required'];
 
-            event(new FastReaction($channel, $emoji, $this->user));
+            $favs = $this->user->favoriteGames ?? [];
+            if (!is_array($favs)) $favs = [];
 
-            return ['success' => true];
+            if (in_array($gameId, $favs)) {
+                $favs = array_values(array_filter($favs, fn($g) => $g !== $gameId));
+                $added = false;
+            } else {
+                $favs[] = $gameId;
+                $added = true;
+            }
+
+            $this->user->update(['favoriteGames' => $favs]);
+            return ['success' => true, 'favorites' => $favs, 'added' => $added];
+        }
+
+        if ($action === 'get_favorites') {
+            return ['favorites' => $this->user->favoriteGames ?? []];
         }
 
         return ['code' => 8, 'message' => 'Unknown action'];

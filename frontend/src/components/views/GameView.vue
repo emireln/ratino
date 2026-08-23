@@ -154,19 +154,22 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 480px;
-    padding: 40px 16px;
+    min-height: calc(100vh - 220px);
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px 16px;
     background: transparent;
 
     .auth-gate-card {
         background: #1c1d25;
         border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-        padding: 40px 32px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+        padding: 44px 36px;
         border-radius: 16px;
         text-align: center;
         max-width: 440px;
         width: 100%;
+        margin: auto;
 
         .gate-icon {
             width: 58px;
