@@ -46,16 +46,26 @@ const SYSTEM_PROMPT = [
 ].join(' ');
 
 function toGeminiMessages(history) {
-    const parts = [];
+    const contents = [];
+    let lastRole = null;
     for (const m of history) {
-        if (m.role === 'system') continue;
-        parts.push({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] });
+        if (!m.content || m.role === 'system') continue;
+        const role = m.role === 'assistant' ? 'model' : 'user';
+        if (role === lastRole && contents.length > 0) {
+            contents[contents.length - 1].parts[0].text += '\n' + m.content;
+        } else {
+            contents.push({ role, parts: [{ text: m.content }] });
+            lastRole = role;
+        }
     }
-    return [{ role: 'user', parts: [{ text: SYSTEM_PROMPT }] }, ...parts];
+    if (contents.length === 0) {
+        contents.push({ role: 'user', parts: [{ text: 'Hello' }] });
+    }
+    return contents;
 }
 
 function toOpenAIMessages(history) {
-    return [{ role: 'system', content: SYSTEM_PROMPT }, ...history.map((m) => ({ role: m.role, content: m.content }))];
+    return [{ role: 'system', content: SYSTEM_PROMPT }, ...history.filter((m) => m.content).map((m) => ({ role: m.role, content: m.content }))];
 }
 
 export async function ask(history, maxTokens = 1024) {
@@ -69,6 +79,9 @@ export async function ask(history, maxTokens = 1024) {
     if (provider === 'gemini') {
         const url = PROVIDERS.gemini.endpoint + '?key=' + encodeURIComponent(key);
         const body = {
+            systemInstruction: {
+                parts: [{ text: SYSTEM_PROMPT }]
+            },
             contents: toGeminiMessages(history),
             generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 }
         };
@@ -77,9 +90,13 @@ export async function ask(history, maxTokens = 1024) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
-        if (!response.ok) throw new Error('Gemini error ' + response.status);
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            const msg = (err && err.error && err.error.message) ? err.error.message : ('Gemini error ' + response.status);
+            throw new Error(msg);
+        }
         const json = await response.json();
-        content = (json.candidates && json.candidates[0] && json.candidates[0].content.parts || [])
+        content = (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts || [])
             .map((p) => p.text || '').join('');
     } else {
         const body = {
@@ -96,7 +113,11 @@ export async function ask(history, maxTokens = 1024) {
             },
             body: JSON.stringify(body)
         });
-        if (!response.ok) throw new Error('OpenAI error ' + response.status);
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            const msg = (err && err.error && err.error.message) ? err.error.message : ('OpenAI error ' + response.status);
+            throw new Error(msg);
+        }
         const json = await response.json();
         content = (json.choices && json.choices[0] && json.choices[0].message.content) || '';
     }

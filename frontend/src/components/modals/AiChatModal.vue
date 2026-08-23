@@ -7,15 +7,20 @@
 
         <div class="ai-messages" ref="messages">
             <div v-for="(m, i) in messages" :key="i" :class="['ai-msg', m.role]">
-                <div class="ai-msg-icon"><i :class="m.role === 'user' ? 'fas fa-user' : 'fas fa-robot'"></i></div>
+                <div class="ai-msg-icon">
+                    <i class="fas fa-user" v-if="m.role === 'user'"></i>
+                    <img :src="`/img/misc/${provider === 'gemini' ? 'gemini-icon.svg' : 'openai-icon.svg'}`" alt="AI" class="ai-chat-avatar" v-else>
+                </div>
                 <div class="ai-msg-bubble">{{ m.content }}</div>
             </div>
             <div class="ai-msg ai-typing" v-if="typing">
-                <div class="ai-msg-icon"><i class="fas fa-robot"></i></div>
+                <div class="ai-msg-icon">
+                    <img :src="`/img/misc/${provider === 'gemini' ? 'gemini-icon.svg' : 'openai-icon.svg'}`" alt="AI" class="ai-chat-avatar">
+                </div>
                 <div class="ai-msg-bubble ai-dots"><span></span><span></span><span></span></div>
             </div>
             <div class="ai-empty" v-if="!messages.length">
-                <i class="fas fa-robot"></i>
+                <img :src="`/img/misc/${provider === 'gemini' ? 'gemini-icon.svg' : 'openai-icon.svg'}`" alt="AI" class="ai-empty-avatar">
                 <div>{{ $t('ai.welcome') }}</div>
             </div>
         </div>
@@ -50,6 +55,7 @@ export default {
     },
     computed: {
         hasKey() { return hasKey(); },
+        provider() { return getProvider(); },
         providerName() { return getProvider() === 'gemini' ? 'Gemini' : 'OpenAI'; }
     },
     methods: {
@@ -72,7 +78,7 @@ export default {
             ask(this.messages.slice(-12)).then((r) => {
                 this.messages.push({ role: 'assistant', content: r.content });
             }).catch((e) => {
-                const error = e && e.message === 'NO_KEY' ? this.$t('ai.no_key') : this.$t('ai.failed');
+                const error = e && e.message ? e.message : this.$t('ai.failed');
                 this.messages.push({ role: 'assistant', content: error });
             }).finally(() => {
                 this.typing = false;
@@ -145,6 +151,12 @@ export default {
                 background: rgba(255, 255, 255, .07);
             }
 
+            .ai-chat-avatar {
+                width: 18px;
+                height: 18px;
+                object-fit: contain;
+            }
+
             .ai-msg-bubble {
                 max-width: 80%;
                 padding: 9px 13px;
@@ -194,9 +206,16 @@ export default {
             display: flex;
             flex-direction: column;
             align-items: center;
-            opacity: .4;
+            opacity: .6;
             text-align: center;
             padding: 0 30px;
+
+            .ai-empty-avatar {
+                width: 36px;
+                height: 36px;
+                margin-bottom: 12px;
+                opacity: 0.85;
+            }
 
             i { font-size: 2.2em; margin-bottom: 10px; }
         }
