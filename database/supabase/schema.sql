@@ -87,6 +87,11 @@ create policy "game_rounds_select_live" on public.game_rounds
     for select to authenticated
     using (true);
 
+-- Insert game rounds (server or authenticated client)
+create policy "game_rounds_insert" on public.game_rounds
+    for insert to authenticated
+    with check (true);
+
 -- =============================================================================
 -- 4. Multiplayer & Private Rooms Table
 -- =============================================================================

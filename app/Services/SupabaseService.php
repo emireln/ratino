@@ -22,7 +22,11 @@ class SupabaseService {
     }
 
     public function enabled(): bool {
-        return (bool) config('supabase.url') && (bool) config('supabase.anon_key') && (bool) config('supabase.service_role_key');
+        return (bool) config('supabase.url') && (bool) config('supabase.anon_key');
+    }
+
+    private function serviceKey(): string {
+        return config('supabase.service_role_key') ?: (config('supabase.anon_key') ?? '');
     }
 
     public function signUp(string $email, string $password, string $name): ?array {
@@ -43,7 +47,7 @@ class SupabaseService {
     public function upsertProfile(User $user): void {
         if (!$this->enabled() || !$user->supabase_id) return;
 
-        $this->request('POST', '/rest/v1/profiles?on_conflict=id', config('supabase.service_role_key'), [[
+        $this->request('POST', '/rest/v1/profiles?on_conflict=id', $this->serviceKey(), [[
             'id' => $user->supabase_id,
             'display_name' => $user->name,
             'updated_at' => now()->toIso8601String()
@@ -53,7 +57,7 @@ class SupabaseService {
     public function recordGame(Game $game, User $user): void {
         if (!$this->enabled() || !$user->supabase_id) return;
 
-        $this->request('POST', '/rest/v1/game_rounds', config('supabase.service_role_key'), [[
+        $this->request('POST', '/rest/v1/game_rounds', $this->serviceKey(), [[
             'legacy_game_id' => (string) $game->_id,
             'user_id' => $user->supabase_id,
             'game_slug' => $game->game,
