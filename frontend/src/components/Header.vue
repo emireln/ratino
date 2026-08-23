@@ -27,7 +27,10 @@
                             <i class="fas fa-trophy" :title="$t('leaderboard.title')" @click="open('Leaderboard')"></i>
                             <i class="fas fa-robot" :title="$t('ai.title')" @click="open('AiChat')"></i>
                         </div>
-                        <span class="account-name">{{ store.user.name }}</span>
+                        <div class="account-profile-trigger" @click="open('Profile')" title="Edit Profile & Avatar">
+                            <img :src="store.user.avatar || '/img/misc/incognito-default.png'" class="header-avatar" alt="">
+                            <span class="account-name">{{ store.user.name }}</span>
+                        </div>
                         <button class="btn btn-signout" @click="logout">Sign out</button>
                     </div>
                 </div>
@@ -188,10 +191,36 @@ header {
                 }
             }
 
-            .account-name {
+            .account-profile-trigger {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 4px 10px;
+                border-radius: 20px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                cursor: pointer;
+                transition: all 0.2s ease;
                 margin-right: 6px;
-                font-weight: 600;
-                color: #fff;
+
+                &:hover {
+                    background: rgba(229, 31, 73, 0.15);
+                    border-color: rgba(229, 31, 73, 0.4);
+                }
+
+                .header-avatar {
+                    width: 26px;
+                    height: 26px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                }
+
+                .account-name {
+                    font-weight: 700;
+                    color: #fff;
+                    font-size: 0.9em;
+                }
             }
 
             .btn {

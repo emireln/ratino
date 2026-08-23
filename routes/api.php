@@ -17,4 +17,5 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('throttle:30,1');
     Route::middleware('auth:sanctum')->middleware('throttle:60,1')->post('/update', [AuthController::class, 'update']);
+    Route::middleware('auth:sanctum')->middleware('throttle:30,1')->post('/profile', [AuthController::class, 'editProfile']);
 });

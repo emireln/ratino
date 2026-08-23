@@ -54,7 +54,8 @@ Multiplayer chains: `php artisan game:chain all`. Rain drops: scheduled (`win5x:
 - **Friends & Multiplayer Rooms**: add friends by username, live online/activity indicators, 1-click private room invites (`/room/:code`) with real-time WebSocket toast alerts.
 - **Filtered Live Bets**: realtime global live bets feed with tabs for All Bets, High Rollers, Lucky Multipliers (10x+), and Friends Only bets.
 - **Fast Floating Reactions**: animated emoji reaction dock (`🔥`, `🚀`, `💎`, `🤑`, `👏`, `💀`, `🤯`, `❤️`) that drops floating physics-driven reactions across player screens in real-time.
-- **Favorites & Gating**: star favorite games, dedicated `/favorites` view, auth-gated game access.
+- **Favorites, Auth & Profiles**: star favorite games, dedicated `/favorites` view, auth-gated game access, profile customization modal (username change, 8 curated casino avatars, custom image upload to `/storage/avatars/`).
+- **Supabase Production Schema**: complete SQL schema in `database/supabase/schema.sql` with Row Level Security (RLS) policies on `profiles`, `game_rounds`, `rooms`, `transactions`, `social_notifications`, triggers (`handle_new_user`), and secure avatar storage bucket.
 - **Realtime rooms**: presence channels per chat room (global + private rooms),
   `/tip username amount`, user-funded rain, live bets feed pushed on every finished game,
   live balance updates on a private channel.

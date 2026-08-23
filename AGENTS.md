@@ -63,7 +63,8 @@ Queue uses sqlite (DB_QUEUE_CONNECTION=sqlite); app data lives in MongoDB.
 - `scripts/make-favicon.php` — regenerates favicons (uses Midstar font when present in `frontend/public/webfonts/`, Arial Bold fallback otherwise).
 - Vault & Weekly Drops: `WalletWhisper` handles 5,000 Chips weekly drops, faucet refills, demo reloads.
 - Friend Rooms & Social: `FriendWhisper` and `RoomWhisper` handle friend requests, online status, 1-click room invites, filtered live bets feed, and fast floating reactions.
-- Favorites & Auth: Star favorite games (`/favorites`), guest lock overlay on game views.
+- Favorites, Auth & Profiles: Star favorite games (`/favorites`), guest lock overlay on game views, user profile modal with username updates, preset avatar gallery, and custom photo uploads (`/api/auth/profile`).
+- Supabase Integration: `database/supabase/schema.sql` defines production-ready RLS policies on `profiles`, `game_rounds`, `rooms`, `transactions`, `social_notifications`, and `avatars` storage bucket.
 
 ## Contracts
 

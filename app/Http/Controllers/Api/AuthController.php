@@ -89,4 +89,64 @@ class AuthController extends Controller {
         return APIResponse::success();
     }
 
+    public function editProfile(Request $request) {
+        $user = $request->user('sanctum');
+        if (!$user) return APIResponse::reject(1, 'Not authorized');
+
+        $updates = [];
+
+        // 1. Username update
+        if ($request->has('name') && !empty($request->name)) {
+            $newName = trim($request->name);
+            if ($newName !== $user->name) {
+                $request->validate([
+                    'name' => ['required', 'string', 'min:4', 'max:64', 'regex:/^[a-zA-Z0-9_-]{4,64}$/u']
+                ]);
+
+                $existing = User::where('name', $newName)->where('_id', '!=', $user->_id)->first();
+                if ($existing) {
+                    return APIResponse::reject(2, 'Username already taken');
+                }
+
+                $updates['name'] = $newName;
+                $history = $user->name_history ?? [];
+                $history[] = ['time' => Carbon::now()->toIso8601String(), 'name' => $newName];
+                $updates['name_history'] = $history;
+            }
+        }
+
+        // 2. Custom Avatar File Upload
+        if ($request->hasFile('avatar_file')) {
+            $request->validate([
+                'avatar_file' => ['required', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:5120']
+            ]);
+
+            $file = $request->file('avatar_file');
+            $filename = 'avatar_' . $user->_id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            
+            // Ensure directory exists in public/storage/avatars
+            $destinationPath = public_path('storage/avatars');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $file->move($destinationPath, $filename);
+
+            $updates['avatar'] = '/storage/avatars/' . $filename;
+        } elseif ($request->has('avatar') && !empty($request->avatar)) {
+            // Preset avatar URL / path
+            $updates['avatar'] = $request->avatar;
+        }
+
+        if (!empty($updates)) {
+            $user->update($updates);
+            
+            $supabase = app(SupabaseService::class);
+            if ($supabase->enabled()) {
+                $supabase->upsertProfile($user);
+            }
+        }
+
+        return APIResponse::success($user->fresh()->toArray());
+    }
+
 }
