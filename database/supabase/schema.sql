@@ -1,9 +1,10 @@
 -- =============================================================================
--- RATINO — Supabase PostgreSQL Schema & Security Architecture
+-- RATINO — Supabase PostgreSQL Schema & Security Architecture (Idempotent)
 -- =============================================================================
 -- Execute in Supabase SQL Editor.
 -- Auth identities live in auth.users; application data resides in public.
 -- All tables enforce strict Row Level Security (RLS) with least-privilege policies.
+-- Safe to re-run multiple times (all policies, triggers, and tables are idempotent).
 -- =============================================================================
 
 -- 1. Extensions
@@ -35,17 +36,20 @@ create index if not exists idx_profiles_vip_level on public.profiles (vip_level 
 alter table public.profiles enable row level security;
 
 -- Authenticated players can view all public profile info (for leaderboards, chat, friends, live bets)
+drop policy if exists "profiles_select_all" on public.profiles;
 create policy "profiles_select_all" on public.profiles
     for select to authenticated
     using (true);
 
 -- Players can only update their own profile fields
+drop policy if exists "profiles_update_own" on public.profiles;
 create policy "profiles_update_own" on public.profiles
     for update to authenticated
     using (auth.uid() = id)
     with check (auth.uid() = id);
 
 -- Players or service role can insert their initial profile
+drop policy if exists "profiles_insert_own" on public.profiles;
 create policy "profiles_insert_own" on public.profiles
     for insert to authenticated
     with check (auth.uid() = id);
@@ -78,16 +82,19 @@ create index if not exists idx_game_rounds_played_at on public.game_rounds (play
 alter table public.game_rounds enable row level security;
 
 -- Players can read their own detailed game round history
+drop policy if exists "game_rounds_select_own" on public.game_rounds;
 create policy "game_rounds_select_own" on public.game_rounds
     for select to authenticated
     using (auth.uid() = user_id);
 
 -- Authenticated players can read public live feed rounds
+drop policy if exists "game_rounds_select_live" on public.game_rounds;
 create policy "game_rounds_select_live" on public.game_rounds
     for select to authenticated
     using (true);
 
 -- Insert game rounds (server or authenticated client)
+drop policy if exists "game_rounds_insert" on public.game_rounds;
 create policy "game_rounds_insert" on public.game_rounds
     for insert to authenticated
     with check (true);
@@ -114,6 +121,7 @@ create index if not exists idx_rooms_owner on public.rooms (owner_id);
 alter table public.rooms enable row level security;
 
 -- Players can view public rooms or private rooms they are members/owners of
+drop policy if exists "rooms_select" on public.rooms;
 create policy "rooms_select" on public.rooms
     for select to authenticated
     using (
@@ -123,17 +131,20 @@ create policy "rooms_select" on public.rooms
     );
 
 -- Room owners can create rooms
+drop policy if exists "rooms_insert_owner" on public.rooms;
 create policy "rooms_insert_owner" on public.rooms
     for insert to authenticated
     with check (owner_id = auth.uid());
 
 -- Room owners or members can update room
+drop policy if exists "rooms_update" on public.rooms;
 create policy "rooms_update" on public.rooms
     for update to authenticated
     using (owner_id = auth.uid() or members ? auth.uid()::text)
     with check (owner_id = auth.uid() or members ? auth.uid()::text);
 
 -- Room owners can delete rooms
+drop policy if exists "rooms_delete_owner" on public.rooms;
 create policy "rooms_delete_owner" on public.rooms
     for delete to authenticated
     using (owner_id = auth.uid());
@@ -158,6 +169,7 @@ create index if not exists idx_transactions_user on public.transactions (user_id
 alter table public.transactions enable row level security;
 
 -- Players can only read their own financial transactions
+drop policy if exists "transactions_select_own" on public.transactions;
 create policy "transactions_select_own" on public.transactions
     for select to authenticated
     using (auth.uid() = user_id);
@@ -180,17 +192,20 @@ create index if not exists idx_notifications_recipient on public.social_notifica
 alter table public.social_notifications enable row level security;
 
 -- Recipients can read only their own notifications
+drop policy if exists "notifications_select_own" on public.social_notifications;
 create policy "notifications_select_own" on public.social_notifications
     for select to authenticated
     using (auth.uid() = recipient_id);
 
 -- Recipients can update read status
+drop policy if exists "notifications_update_own" on public.social_notifications;
 create policy "notifications_update_own" on public.social_notifications
     for update to authenticated
     using (auth.uid() = recipient_id)
     with check (auth.uid() = recipient_id);
 
 -- Authenticated users can insert notifications to peers (e.g. friend requests, room invites)
+drop policy if exists "notifications_insert_authenticated" on public.social_notifications;
 create policy "notifications_insert_authenticated" on public.social_notifications
     for insert to authenticated
     with check (sender_id = auth.uid());
@@ -203,11 +218,13 @@ values ('avatars', 'avatars', true)
 on conflict (id) do update set public = true;
 
 -- Public can read avatar images
+drop policy if exists "avatars_public_select" on storage.objects;
 create policy "avatars_public_select" on storage.objects
     for select
     using (bucket_id = 'avatars');
 
 -- Authenticated users can upload avatars inside their own folder: avatars/{userId}/*
+drop policy if exists "avatars_user_insert" on storage.objects;
 create policy "avatars_user_insert" on storage.objects
     for insert to authenticated
     with check (
@@ -216,6 +233,7 @@ create policy "avatars_user_insert" on storage.objects
     );
 
 -- Authenticated users can update their own avatars
+drop policy if exists "avatars_user_update" on storage.objects;
 create policy "avatars_user_update" on storage.objects
     for update to authenticated
     using (
@@ -224,6 +242,7 @@ create policy "avatars_user_update" on storage.objects
     );
 
 -- Authenticated users can delete their own avatars
+drop policy if exists "avatars_user_delete" on storage.objects;
 create policy "avatars_user_delete" on storage.objects
     for delete to authenticated
     using (
