@@ -249,15 +249,15 @@ header {
             }
 
             .btn-register {
-                background: linear-gradient(135deg, #ff2a55 0%, #e51f49 100%) !important;
+                background: #e51f49 !important;
                 color: #ffffff !important;
                 border: none !important;
-                box-shadow: 0 4px 14px rgba(229, 31, 73, 0.4);
+                box-shadow: none !important;
 
                 &:hover {
-                    background: linear-gradient(135deg, #ff4167 0%, #f02550 100%) !important;
-                    box-shadow: 0 6px 20px rgba(229, 31, 73, 0.55);
-                    transform: translateY(-1px);
+                    background: #ff2a55 !important;
+                    box-shadow: none !important;
+                    transform: none;
                 }
             }
 

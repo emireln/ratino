@@ -149,21 +149,21 @@ export default {
         width: 40px;
         border-radius: 8px;
         opacity: .55;
-        transition: all .25s ease;
+        transition: all .2s ease;
         color: #fff;
         text-decoration: none;
 
         &:hover {
             opacity: 1;
-            background: rgba(255, 255, 255, 0.07);
+            background: rgba(255, 255, 255, 0.08);
             color: #fff;
         }
 
+        &.router-link-active,
         &.router-link-exact-active {
             opacity: 1;
-            background: rgba(229, 31, 73, 0.16);
+            background: rgba(255, 255, 255, 0.08);
             color: #e51f49;
-            box-shadow: inset 2px 0 0 #e51f49;
 
             i, svg { color: #e51f49; }
         }
@@ -175,6 +175,8 @@ export default {
             display: flex;
             align-items: center;
             justify-content: center;
+            color: inherit;
+            transition: color 0.2s ease;
         }
     }
 }

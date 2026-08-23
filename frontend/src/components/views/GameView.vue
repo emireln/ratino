@@ -13,7 +13,7 @@
             </div>
         </div>
 
-        <div :class="[`game-container game-${$route.params.id}`, !store.user ? 'game-locked' : '']">
+        <div :class="`game-container game-${$route.params.id}`" v-if="store.user">
             <div class="row">
                 <div class="col-12 col-lg-3">
                     <game-sidebar></game-sidebar>
@@ -31,8 +31,8 @@
         </div>
         <div class="game-footer" v-show="store.user"></div>
 
-        <!-- Realtime Fast Reactions Floating Bar -->
-        <fast-reactions :channel="`multiplayer.${$route.params.id}`"></fast-reactions>
+        <!-- Realtime Fast Reactions Floating Bar (Only in shared/multiplayer rooms for logged-in players) -->
+        <fast-reactions v-if="store.user && isSharedRoom" :channel="sharedRoomChannel"></fast-reactions>
     </div>
 </template>
 
@@ -73,6 +73,17 @@ export default {
     computed: {
         component() {
             return games[this.$route.params.id] ? defineAsyncComponent(games[this.$route.params.id]) : null;
+        },
+        isSharedRoom() {
+            return Boolean(this.$route.query.room || localStorage.getItem('ratino_active_room'));
+        },
+        sharedRoomChannel() {
+            if (this.$route.query.room) return `room.${this.$route.query.room}`;
+            try {
+                const saved = JSON.parse(localStorage.getItem('ratino_active_room') || '{}');
+                if (saved && saved.code) return `room.${saved.code}`;
+            } catch (e) {}
+            return `multiplayer.${this.$route.params.id}`;
         }
     },
     methods: {
@@ -214,14 +225,15 @@ export default {
             }
 
             .btn-gate-register {
-                background: linear-gradient(135deg, #ff2a55 0%, #e51f49 100%) !important;
+                background: #e51f49 !important;
                 color: #fff !important;
                 border: none !important;
-                box-shadow: 0 4px 14px rgba(229, 31, 73, 0.45);
+                box-shadow: none !important;
 
                 &:hover {
-                    transform: translateY(-1px);
-                    box-shadow: 0 6px 20px rgba(229, 31, 73, 0.6);
+                    background: #ff2a55 !important;
+                    box-shadow: none !important;
+                    transform: none;
                 }
             }
         }

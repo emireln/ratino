@@ -166,7 +166,7 @@ export default {
         &.active {
             background: #e51f49;
             color: #fff;
-            box-shadow: 0 4px 12px rgba(229, 31, 73, 0.35);
+            box-shadow: none;
         }
     }
 }
@@ -211,17 +211,17 @@ export default {
         font-weight: 700;
         letter-spacing: 0.02em;
         text-transform: uppercase;
-        background: linear-gradient(135deg, #ff2a55 0%, #e51f49 100%) !important;
+        background: #e51f49 !important;
         color: #ffffff !important;
         border: none !important;
-        box-shadow: 0 6px 18px rgba(229, 31, 73, 0.45);
+        box-shadow: none !important;
         cursor: pointer;
-        transition: all 0.25s ease;
+        transition: all 0.2s ease;
 
         &:hover:not(:disabled) {
-            background: linear-gradient(135deg, #ff4167 0%, #f02550 100%) !important;
-            box-shadow: 0 8px 24px rgba(229, 31, 73, 0.6);
-            transform: translateY(-1px);
+            background: #ff2a55 !important;
+            box-shadow: none !important;
+            transform: none;
         }
 
         &:disabled {
