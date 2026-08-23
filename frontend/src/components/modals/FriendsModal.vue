@@ -216,7 +216,7 @@ export default {
         justify-content: center;
         font-size: 1.4em;
         margin: 0 auto 10px;
-        box-shadow: 0 0 20px rgba(229, 31, 73, 0.25);
+        box-shadow: none;
     }
 
     .friends-title {
@@ -317,7 +317,7 @@ export default {
 
                     &.is-online {
                         background: #2fd672;
-                        box-shadow: 0 0 6px #2fd672;
+                        box-shadow: none;
                     }
                 }
             }

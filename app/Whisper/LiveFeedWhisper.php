@@ -10,13 +10,21 @@ class LiveFeedWhisper extends Whisper {
     }
 
     public function process($data): array {
-        $games = Game::where('demo', false)->whereIn('status', ['win', 'lose'])
-            ->orderBy('created_at', 'desc')->limit(15)->get();
+        $games = Game::whereIn('status', ['win', 'lose'])
+            ->orderBy('_id', 'desc')
+            ->limit(25)
+            ->get();
 
         $ids = [];
-        foreach ($games as $game) if ($game->user != null) $ids[] = $game->user;
+        foreach ($games as $game) {
+            if ($game->user != null) $ids[] = $game->user;
+        }
         $users = [];
-        if (count($ids) > 0) foreach (User::whereIn('_id', array_unique($ids))->get(['name', 'avatar']) as $u) $users[strval($u->_id)] = $u;
+        if (count($ids) > 0) {
+            foreach (User::whereIn('_id', array_unique($ids))->get() as $u) {
+                $users[strval($u->_id)] = $u;
+            }
+        }
 
         $result = [];
         foreach ($games as $game) {

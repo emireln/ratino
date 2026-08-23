@@ -147,7 +147,7 @@ body.show { overflow: hidden; }
 
         &:focus {
             border-color: #e51f49;
-            box-shadow: 0 0 0 3px rgba(229, 31, 73, 0.25);
+            box-shadow: none;
             outline: none;
         }
     }

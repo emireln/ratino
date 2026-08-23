@@ -3,8 +3,7 @@
         <div class="live-feed-header">
             <div class="feed-title-left">
                 <i class="fas fa-satellite-dish"></i>
-                <span class="title-text">Live Bets Feed</span>
-                <span class="live-pulse-badge"><i class="fas fa-circle"></i> REALTIME</span>
+                <span class="title-text">Live Bets</span>
             </div>
 
             <!-- Feed Filter Tabs -->
@@ -134,9 +133,9 @@ export default {
 @import '../sass/variables';
 
 .live-feed {
-    margin: 35px auto 10px;
-    max-width: 1200px;
+    margin: 35px 0 15px;
     width: 100%;
+    max-width: 100%;
 
     .live-feed-header {
         display: flex;
@@ -157,25 +156,6 @@ export default {
             color: #fff;
 
             i { color: #e51f49; }
-
-            .live-pulse-badge {
-                font-size: .72em;
-                color: #2fd672;
-                background: rgba(47, 214, 114, 0.12);
-                padding: 2px 8px;
-                border-radius: 12px;
-                border: 1px solid rgba(47, 214, 114, 0.3);
-                font-weight: 800;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-
-                i {
-                    color: #2fd672;
-                    font-size: .55em;
-                    animation: feed-pulse 1.5s infinite;
-                }
-            }
         }
 
         .feed-filter-tabs {
@@ -329,10 +309,5 @@ export default {
         grid-template-columns: 32px 1fr 90px 70px;
         .live-feed-quick-react { display: none; }
     }
-}
-
-@keyframes feed-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .25; }
 }
 </style>

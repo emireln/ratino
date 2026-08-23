@@ -180,7 +180,7 @@ export default {
         justify-content: center;
         font-size: 1.5em;
         margin: 0 auto 12px;
-        box-shadow: 0 0 20px rgba(229, 31, 73, 0.25);
+        box-shadow: none;
     }
 
     .wallet-title {
@@ -290,24 +290,25 @@ export default {
         border-radius: 8px;
         font-weight: 700;
         font-size: 0.95em;
-        background: linear-gradient(135deg, #ff2a55 0%, #e51f49 100%) !important;
+        background: #e51f49 !important;
         color: #fff !important;
         border: none !important;
-        box-shadow: 0 4px 14px rgba(229, 31, 73, 0.45);
+        box-shadow: none !important;
         white-space: nowrap;
         cursor: pointer;
-        transition: all 0.25s ease;
+        transition: all 0.2s ease;
 
         &:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(229, 31, 73, 0.6);
+            background: #ff2a55 !important;
+            box-shadow: none !important;
+            transform: none;
         }
 
         &:disabled {
             opacity: 0.55;
             cursor: not-allowed;
             background: rgba(255, 255, 255, 0.1) !important;
-            box-shadow: none;
+            box-shadow: none !important;
         }
     }
 }

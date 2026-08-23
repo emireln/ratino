@@ -230,7 +230,7 @@ export default {
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid rgba(229, 31, 73, 0.5);
-            box-shadow: 0 0 20px rgba(229, 31, 73, 0.35);
+            box-shadow: none;
         }
 
         .avatar-upload-badge {
@@ -371,7 +371,7 @@ export default {
         &.selected {
             border-color: #e51f49;
             background: rgba(229, 31, 73, 0.2);
-            box-shadow: 0 0 12px rgba(229, 31, 73, 0.3);
+            box-shadow: none;
         }
     }
 }
@@ -381,7 +381,7 @@ export default {
 
     .btn-save-profile {
         width: 100%;
-        background: linear-gradient(135deg, #ff2a55 0%, #e51f49 100%) !important;
+        background: #e51f49 !important;
         color: #fff !important;
         border: none !important;
         padding: 12px;
@@ -390,6 +390,7 @@ export default {
         font-size: 0.95em;
         cursor: pointer;
         transition: all 0.2s ease;
+        box-shadow: none;
 
         &:disabled {
             opacity: 0.5;
@@ -397,8 +398,9 @@ export default {
         }
 
         &:hover:not(:disabled) {
-            box-shadow: 0 4px 16px rgba(229, 31, 73, 0.5);
-            transform: translateY(-1px);
+            background: #ff2a55 !important;
+            box-shadow: none;
+            transform: none;
         }
     }
 }

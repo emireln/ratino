@@ -151,22 +151,18 @@ export default {
 @import '../../sass/variables';
 
 .game-auth-gate {
-    position: absolute;
-    inset: 0;
-    z-index: 2500;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(14, 15, 20, 0.78);
-    backdrop-filter: blur(8px);
-    border-radius: 16px;
-    padding: 20px;
+    min-height: 480px;
+    padding: 40px 16px;
+    background: transparent;
 
     .auth-gate-card {
         background: #1c1d25;
-        border: 1px solid rgba(229, 31, 73, 0.35);
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(229, 31, 73, 0.2);
-        padding: 36px 32px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        padding: 40px 32px;
         border-radius: 16px;
         text-align: center;
         max-width: 440px;
@@ -176,14 +172,14 @@ export default {
             width: 58px;
             height: 58px;
             border-radius: 50%;
-            background: rgba(229, 31, 73, 0.15);
+            background: rgba(229, 31, 73, 0.12);
             color: #e51f49;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.5em;
             margin: 0 auto 16px;
-            box-shadow: 0 0 20px rgba(229, 31, 73, 0.3);
+            box-shadow: none;
         }
 
         h3 {
