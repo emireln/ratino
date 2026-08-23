@@ -1,3 +1,5 @@
+import { buildSystemPrompt, sanitizePlayerMessage, fencePlayerMessage } from './aiContext';
+
 /**
  * BYOK AI — provider calls run entirely from the browser with the user's
  * own key. Nothing is stored server-side.
@@ -37,35 +39,40 @@ export function setProvider(provider) {
     localStorage.setItem('ai_provider', provider);
 }
 
-const SYSTEM_PROMPT = [
-    'You are the RATINO casino assistant, a friendly guide for a casual social casino app.',
-    'You explain game mechanics (Mines, Dice, Crash, Plinko, Blackjack, Roulette, Baccarat, Keno, Slots and more),',
-    'you analyze odds and house edge, and you give sensible bankroll management advice.',
-    'You never encourage chasing losses or gambling money someone cannot afford to lose.',
-    'Answer briefly and clearly, in the same language the player uses.'
-].join(' ');
+const SYSTEM_PROMPT = buildSystemPrompt();
 
+/**
+ * History entries are untrusted data: sanitize, then fence each player
+ * message so the model treats it as content, never as instructions.
+ */
 function toGeminiMessages(history) {
     const contents = [];
     let lastRole = null;
     for (const m of history) {
         if (!m.content || m.role === 'system') continue;
+        const text = m.role === 'user' ? fencePlayerMessage(sanitizePlayerMessage(m.content)) : sanitizePlayerMessage(m.content);
         const role = m.role === 'assistant' ? 'model' : 'user';
         if (role === lastRole && contents.length > 0) {
-            contents[contents.length - 1].parts[0].text += '\n' + m.content;
+            contents[contents.length - 1].parts[0].text += '\n' + text;
         } else {
-            contents.push({ role, parts: [{ text: m.content }] });
+            contents.push({ role, parts: [{ text }] });
             lastRole = role;
         }
     }
     if (contents.length === 0) {
-        contents.push({ role: 'user', parts: [{ text: 'Hello' }] });
+        contents.push({ role: 'user', parts: [{ text: fencePlayerMessage('Hello') }] });
     }
     return contents;
 }
 
 function toOpenAIMessages(history) {
-    return [{ role: 'system', content: SYSTEM_PROMPT }, ...history.filter((m) => m.content).map((m) => ({ role: m.role, content: m.content }))];
+    return [{
+        role: 'system',
+        content: SYSTEM_PROMPT
+    }, ...history.filter((m) => m.content).map((m) => ({
+        role: m.role,
+        content: m.role === 'user' ? fencePlayerMessage(sanitizePlayerMessage(m.content)) : sanitizePlayerMessage(m.content)
+    }))];
 }
 
 export async function ask(history, maxTokens = 1024) {
@@ -83,7 +90,7 @@ export async function ask(history, maxTokens = 1024) {
                 parts: [{ text: SYSTEM_PROMPT }]
             },
             contents: toGeminiMessages(history),
-            generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 }
+            generationConfig: { maxOutputTokens: maxTokens, temperature: 0.5 }
         };
         const response = await fetch(url, {
             method: 'POST',
@@ -103,7 +110,7 @@ export async function ask(history, maxTokens = 1024) {
             model: PROVIDERS.openai.model,
             messages: toOpenAIMessages(history),
             max_tokens: maxTokens,
-            temperature: 0.7
+            temperature: 0.5
         };
         const response = await fetch(PROVIDERS.openai.endpoint, {
             method: 'POST',
