@@ -314,7 +314,7 @@
                 });
             },
             customWagerCalculation() {
-                return parseFloat(this.rawBitcoin(this.currency, parseFloat($('#bet').html())));
+                return Object.values(this.bet || {}).reduce((total, amount) => total + Number(amount || 0), 0);
             },
             clear() {
                 this.bet = {};

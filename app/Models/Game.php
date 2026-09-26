@@ -11,7 +11,7 @@ class Game extends Model {
 
     protected $fillable = [
         'id', 'client_seed', 'server_seed', 'nonce', 'user', 'game', 'multiplier', 'status', 'profit', 'data', 'type', 'demo',
-        'wager', 'currency'
+        'wager', 'currency', 'settled', 'turn_lock'
     ];
 
     protected $casts = [

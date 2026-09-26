@@ -14,6 +14,14 @@ use App\Games\Kernel\RejectedGameResult;
 
 class Dice extends QuickGame implements MultiplierCanBeLimited {
 
+    public function isValidPlayData(Data $data): bool {
+        $game = $data->game();
+        return in_array($game->target ?? null, ['lower', 'higher'], true)
+            && is_numeric($game->value ?? null)
+            && (float) $game->value === (float) intval($game->value)
+            && intval($game->value) >= 10 && intval($game->value) <= 110;
+    }
+
     function metadata(): Metadata {
         return new class extends Metadata {
             public function id(): string {

@@ -11,28 +11,46 @@ class PlayWhisper extends Whisper {
     }
 
     public function process($data): array {
-        $game = Game::find($data->api_id);
+        if($this->user == null) return ['code' => -9, 'message' => 'You need to login in order to play this game'];
+
+        $apiId = $data->api_id ?? null;
+        if(!is_string($apiId) || $apiId === '') return ['code' => -3, 'message' => 'Unknown API game id'];
+        $game = Game::find($apiId);
         if($game == null) return ['code' => -3, 'message' => 'Unknown API game id'];
         if($game->isDisabled()) return ['code' => -5, 'message' => 'Game is disabled'];
 
-        if($this->user != null && !$game->ignoresMultipleClientTabs() && \App\Models\Game::where('game', $data->api_id)->where('user', $this->user->_id)->where('demo', false)->where('status', 'in-progress')->count() > 0) return ['code' => -8, 'message' => 'Game already has started'];
+        if(!$game->ignoresMultipleClientTabs() && \App\Models\Game::where('game', $apiId)->where('user', $this->user->_id)->where('demo', false)->where('status', 'in-progress')->count() > 0) return ['code' => -8, 'message' => 'Game already has started'];
 
-        $currency = Currency::find($data->currency ?? 'credits');
+        $currencyId = $data->currency ?? 'credits';
+        if(!is_string($currencyId)) return ['code' => -1, 'message' => 'Invalid currency'];
+        $currency = Currency::find($currencyId);
         if($currency == null) $currency = Currency::find('credits');
         if($currency == null) return ['code' => -1, 'message' => 'Invalid currency'];
 
-        $bet = floatval($data->bet ?? 0);
+        $rawBet = $data->bet ?? null;
+        if(!is_numeric($rawBet)) return ['code' => -1, 'message' => 'Invalid wager value'];
+        $bet = round((float) $rawBet, 2);
+        if(!is_finite($bet) || $bet <= 0) return ['code' => -1, 'message' => 'Invalid wager value'];
+        $demo = filter_var(is_scalar($data->demo ?? false) ? ($data->demo ?? false) : false, FILTER_VALIDATE_BOOLEAN);
+        $quick = filter_var(is_scalar($data->quick ?? false) ? ($data->quick ?? false) : false, FILTER_VALIDATE_BOOLEAN);
         if(!$game->usesCustomWagerCalculations() && $bet < $currency->minBet()) return ['code' => -1, 'message' => 'Invalid wager value'];
-        if($this->user != null && ($this->user->balance($currency)->demo($data->demo ?? false)->get() < $bet)) return ['code' => -4, 'message' => 'Not enough money'];
+        if(!$game->usesCustomWagerCalculations() && $this->user->balance($currency)->demo($demo)->get() < $bet) return ['code' => -4, 'message' => 'Not enough money'];
+
+        $gameData = $data->data ?? [];
+        if(!is_array($gameData) && !is_object($gameData)) return ['code' => -1, 'message' => 'Invalid game data'];
 
         $data = new Data($this->user, [
-            'api_id' => $data->api_id,
+            'api_id' => $apiId,
             'bet' => $bet,
             'currency' => $currency->id(),
-            'demo' => $data->demo ?? false,
-            'quick' => $data->quick ?? false,
-            'data' => (array) ($data->data ?? [])
+            'demo' => $demo,
+            'quick' => $quick,
+            'data' => (array) $gameData
         ]);
+
+        if(!$game->isValidPlayData($data)) return ['code' => -1, 'message' => 'Invalid game data'];
+        if($game->usesCustomWagerCalculations() && $game->customWagerCalculation($data) !== true) return ['code' => -1, 'message' => 'Invalid wager value'];
+        if($this->user->balance($currency)->demo($data->demo())->get() < $data->bet()) return ['code' => -4, 'message' => 'Not enough money'];
 
         return $game->process($data);
     }

@@ -1,11 +1,9 @@
 <?php namespace App\Games\Kernel\Quick;
 
-use App\Currency\Currency;
 use App\Games\Kernel\Data;
 use App\Games\Kernel\GameResult;
 use App\Games\Kernel\ProvablyFair;
 use App\Games\Kernel\ProvablyFairResult;
-use App\Models\Transaction;
 use App\Models\User;
 
 class SuccessfulQuickGameResult implements GameResult {
@@ -31,19 +29,17 @@ class SuccessfulQuickGameResult implements GameResult {
 
     public function winCustom(?User $user, Data $data, float $profit, float $displayMultiplier) {
         $this->multiplier = $displayMultiplier;
-        $this->profit = $profit;
+        $this->profit = round($profit, 2);
 
-        if(!$data->guest() && $profit > 0) $user->balance(Currency::find($data->currency()))->quiet()->demo($data->demo())->add($profit, Transaction::builder()->game($data->id())->message('Win (Custom)')->get());
     }
 
-    public function win(?User $user, Data $data, float $multiplier, float $bet = null) {
+    public function win(?User $user, Data $data, float $multiplier, ?float $bet = null) {
         $this->multiplier = $multiplier;
         $bet = $bet == null ? $data->bet() : $bet;
 
         if($multiplier < 1 && $bet <= Currency::find($data->currency())->minBet()) $this->profit = 0;
-        else $this->profit = ($bet * $multiplier);
+        else $this->profit = round($bet * $multiplier, 2);
 
-        if(!$data->guest() && $this->profit > 0) $user->balance(Currency::find($data->currency()))->quiet()->demo($data->demo())->add($this->profit, Transaction::builder()->game($data->id())->message('Win')->get());
     }
 
     public function profit(): float {

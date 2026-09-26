@@ -52,15 +52,17 @@ class HouseEdgeModule extends Module {
     public static function apply(Game $game, float $mul): float {
         $houseEdgeModule = new HouseEdgeModule($game, null, null, null);
         if(Modules::get($game, false)->isEnabled($houseEdgeModule)) {
-            $mul = $mul * (1 - floatval(Modules::get($game, false)->get($houseEdgeModule, 'house_edge_option')) / 100);
-            return $mul;
+            $percent = max(0, min(100, floatval(Modules::get($game, false)->get($houseEdgeModule, 'house_edge_option'))));
+            return $mul * (1 - $percent / 100);
         }
         return $mul;
     }
 
     public static function get(Game $game, float $default): float {
         $houseEdgeModule = new HouseEdgeModule($game, null, null, null);
-        return Modules::get($game, false)->isEnabled($houseEdgeModule) ? floatval(Modules::get($game, false)->get($houseEdgeModule, 'house_edge_option')) : $default;
+        if(!Modules::get($game, false)->isEnabled($houseEdgeModule)) return $default;
+        $percent = max(0, min(100, floatval(Modules::get($game, false)->get($houseEdgeModule, 'house_edge_option'))));
+        return 1 - $percent / 100;
     }
 
 }

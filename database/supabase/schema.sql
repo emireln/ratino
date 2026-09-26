@@ -54,6 +54,15 @@ create policy "profiles_insert_own" on public.profiles
     for insert to authenticated
     with check (auth.uid() = id);
 
+-- Client access is column-scoped so profile policies cannot expose or change balances.
+revoke select, insert, update on table public.profiles from anon, authenticated;
+grant select (id, display_name, avatar_url, vip_level, active_game, active_room, friends, created_at)
+    on table public.profiles to authenticated;
+grant insert (id, display_name, avatar_url, active_game, active_room, friends, friend_requests)
+    on table public.profiles to authenticated;
+grant update (display_name, avatar_url, active_game, active_room, friends, friend_requests)
+    on table public.profiles to authenticated;
+
 -- =============================================================================
 -- 3. Game Rounds Ledger Table (Provably Fair)
 -- =============================================================================
@@ -93,11 +102,11 @@ create policy "game_rounds_select_live" on public.game_rounds
     for select to authenticated
     using (true);
 
--- Insert game rounds (server or authenticated client)
+-- Game outcomes are server-authored. Client credentials cannot forge ledger rows.
 drop policy if exists "game_rounds_insert" on public.game_rounds;
-create policy "game_rounds_insert" on public.game_rounds
-    for insert to authenticated
-    with check (true);
+revoke select, insert, update, delete on table public.game_rounds from anon, authenticated;
+grant select (legacy_game_id, user_id, game_slug, wager, profit, multiplier, currency, status, played_at)
+    on table public.game_rounds to authenticated;
 
 -- =============================================================================
 -- 4. Multiplayer & Private Rooms Table
@@ -149,6 +158,15 @@ create policy "rooms_delete_owner" on public.rooms
     for delete to authenticated
     using (owner_id = auth.uid());
 
+revoke select, insert, update, delete on table public.rooms from anon, authenticated;
+grant select (id, code, name, owner_id, is_private, members, created_at, updated_at)
+    on table public.rooms to authenticated;
+grant insert (code, name, owner_id, is_private, members)
+    on table public.rooms to authenticated;
+grant update (name, is_private, members)
+    on table public.rooms to authenticated;
+grant delete on table public.rooms to authenticated;
+
 -- =============================================================================
 -- 5. Transactions Ledger Table
 -- =============================================================================
@@ -173,6 +191,8 @@ drop policy if exists "transactions_select_own" on public.transactions;
 create policy "transactions_select_own" on public.transactions
     for select to authenticated
     using (auth.uid() = user_id);
+
+revoke insert, update, delete on table public.transactions from anon, authenticated;
 
 -- =============================================================================
 -- 6. Social Notifications Table
@@ -209,6 +229,13 @@ drop policy if exists "notifications_insert_authenticated" on public.social_noti
 create policy "notifications_insert_authenticated" on public.social_notifications
     for insert to authenticated
     with check (sender_id = auth.uid());
+
+revoke select, insert, update, delete on table public.social_notifications from anon, authenticated;
+grant select (id, recipient_id, sender_id, type, data, is_read, created_at)
+    on table public.social_notifications to authenticated;
+grant insert (recipient_id, sender_id, type, data)
+    on table public.social_notifications to authenticated;
+grant update (is_read) on table public.social_notifications to authenticated;
 
 -- =============================================================================
 -- 7. Supabase Storage Buckets & Policies (Avatars)

@@ -88,7 +88,7 @@
             <div class="game-guide-grid">
                 <div class="game-guide-card">
                     <div class="game-guide-title"><i class="fas fa-bomb text-danger"></i> Mines</div>
-                    <div class="game-guide-desc">Pick 1 to 24 mines on a 5x5 grid. Uncover gems to increase your multiplier and cash out anytime before hitting a mine!</div>
+                    <div class="game-guide-desc">Pick 2 to 24 mines on a 5x5 grid. Uncover gems to increase your multiplier and cash out anytime before hitting a mine.</div>
                 </div>
                 <div class="game-guide-card">
                     <div class="game-guide-title"><i class="fas fa-chart-line text-success"></i> Crash</div>

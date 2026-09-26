@@ -13,6 +13,14 @@ use Illuminate\Support\Facades\Log;
 
 class Plinko extends QuickGame implements MultiplierCanBeLimited {
 
+    public function isValidPlayData(Data $data): bool {
+        $game = $data->game();
+        return in_array($game->difficulty ?? null, ['low', 'medium', 'high'], true)
+            && is_numeric($game->pins ?? null)
+            && (float) $game->pins === (float) intval($game->pins)
+            && intval($game->pins) >= 8 && intval($game->pins) <= 16;
+    }
+
     function metadata(): Metadata {
         return new class extends Metadata {
             public function id(): string {

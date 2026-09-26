@@ -16,7 +16,7 @@ export default class Cards {
      * @return {Object[]} The cards.
      */
     verifyBlackjack(seed_data) {
-        return this._getCards(seed_data, 52);
+        return this._getCards(seed_data, 208);
     }
 
     /**

@@ -62,20 +62,29 @@ abstract class MultiplayerGame extends ExtendedGame
 
     protected function win(Game $game, float $multiplier, int $delay)
     {
-        $game->update([
-            'status' => $multiplier == 0 ? 'lose' : 'win',
-            'profit' => $game->wager * $multiplier,
+        $profit = round($game->wager * $multiplier, 2);
+        $settled = Game::where('_id', $game->_id)
+            ->where('status', 'in-progress')
+            ->where('settled', '!=', true)
+            ->where('turn_lock', '!=', true)
+            ->update([
+            'settled' => true,
+            'status' => $multiplier <= 0 ? 'lose' : 'win',
+            'profit' => $profit,
             'multiplier' => $multiplier,
         ]);
+        if(!$settled) return;
+        $game->refresh();
 
-        if ($multiplier > 0) {
-            $user = User::where('_id', $game->user)->first();
+        $user = User::where('_id', $game->user)->first();
+        if($user == null) return;
+        if($profit > 0) {
             $currency = Currency::find($game->currency);
-            $user->balance($currency)->demo($game->demo)->quiet(true)
-                ->add($game->profit, Transaction::builder()->message($this->metadata()->name())->game($this->metadata()->id())->get());
-            app(SupabaseService::class)->recordGame($game, $user);
-            BountyService::check($user, $game);
+            $user->balance($currency)->demo($game->demo)->quiet()
+                ->add($profit, Transaction::builder()->message($this->metadata()->name())->game($this->metadata()->id())->get());
         }
+        app(SupabaseService::class)->recordGame($game, $user);
+        BountyService::check($user, $game);
     }
 
     protected function acceptBet(Data $data)
@@ -86,6 +95,11 @@ abstract class MultiplayerGame extends ExtendedGame
     protected function canBeFinished(): bool
     {
         return false;
+    }
+
+    public function canPlayerFinish(): bool
+    {
+        return $this->canBeFinished();
     }
 
     protected function allowCancellation(): bool

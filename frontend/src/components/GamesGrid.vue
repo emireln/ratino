@@ -1,17 +1,25 @@
 <template>
     <div class="games-grid">
+        <div class="games-search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input v-model="searchQuery" type="search" aria-label="Search games" placeholder="Search games" autocomplete="off">
+            <button v-if="searchQuery" type="button" aria-label="Clear search" @click="searchQuery = ''">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+
         <!-- Favorites Section if any exist and not filtering only favorites -->
-        <div class="favorites-section" v-if="favoriteGamesList.length && !onlyFavorites">
+        <div class="favorites-section" v-if="visibleFavoriteGamesList.length && !onlyFavorites">
             <div class="index_cat favorites-heading">
                 <i class="fas fa-star text-warning"></i>
                 <span>Favorites</span>
-                <span class="badge-count">{{ favoriteGamesList.length }}</span>
+                <span class="badge-count">{{ visibleFavoriteGamesList.length }}</span>
             </div>
             <div class="games">
-                <div v-for="game in favoriteGamesList" :key="'fav-' + game.id" class="game_poster"
-                    @click="game.isDisabled ? null : $router.push(`/casino/game/${game.id}`)">
+                <div v-for="game in visibleFavoriteGamesList" :key="'fav-' + game.id" :class="['game_poster', { 'is-disabled': game.isDisabled }]">
+                    <a v-if="!game.isDisabled" class="game-open-link" :href="`/casino/game/${game.id}`" @click.prevent="openGame(game)"><span class="sr-only">Play {{ game.name }}</span></a>
                     <div class="game_poster-image" :class="`game-${game.id}-image`">
-                        <button class="btn-favorite active" @click.stop="toggleFavorite(game.id)" title="Remove from favorites">
+                        <button class="btn-favorite active" @click.stop="toggleFavorite(game.id)" @keydown.stop title="Remove from favorites" aria-label="Remove from favorites">
                             <i class="fas fa-star"></i>
                         </button>
                         <div class="unavailable" v-if="game.isDisabled">
@@ -32,11 +40,11 @@
                 <i class="fas fa-star text-warning"></i>
                 <span>Your Favorite Games</span>
             </div>
-            <div class="games" v-if="favoriteGamesList.length">
-                <div v-for="game in favoriteGamesList" :key="'onlyfav-' + game.id" class="game_poster"
-                    @click="game.isDisabled ? null : $router.push(`/casino/game/${game.id}`)">
+            <div class="games" v-if="visibleFavoriteGamesList.length">
+                <div v-for="game in visibleFavoriteGamesList" :key="'onlyfav-' + game.id" :class="['game_poster', { 'is-disabled': game.isDisabled }]">
+                    <a v-if="!game.isDisabled" class="game-open-link" :href="`/casino/game/${game.id}`" @click.prevent="openGame(game)"><span class="sr-only">Play {{ game.name }}</span></a>
                     <div class="game_poster-image" :class="`game-${game.id}-image`">
-                        <button class="btn-favorite active" @click.stop="toggleFavorite(game.id)" title="Remove from favorites">
+                        <button class="btn-favorite active" @click.stop="toggleFavorite(game.id)" @keydown.stop title="Remove from favorites" aria-label="Remove from favorites">
                             <i class="fas fa-star"></i>
                         </button>
                         <div class="unavailable" v-if="game.isDisabled">
@@ -49,25 +57,33 @@
                     </div>
                 </div>
             </div>
+            <div class="games-empty-favorites" v-else-if="store.gamesLoading">
+                <loader></loader>
+            </div>
+            <div class="games-empty-favorites" v-else-if="store.gamesLoadError" role="alert">
+                <div>Games could not load.</div>
+                <button type="button" class="games-retry" @click="store.updateData()">Retry</button>
+            </div>
             <div class="games-empty-favorites" v-else>
                 <i class="far fa-star"></i>
-                <div class="mt-2">No favorite games added yet.</div>
-                <small class="text-muted">Click the star icon on any game to add it to your favorites!</small>
+                <div class="mt-2">{{ searchQuery ? 'No favorite games match your search.' : 'No favorite games added yet.' }}</div>
+                <small class="text-muted">{{ searchQuery ? 'Try another game name or clear the search.' : 'Click the star icon on any game to add it to your favorites!' }}</small>
             </div>
         </div>
 
         <!-- Standard Categories View -->
-        <template v-else v-for="(category, key) in categories" :key="key">
+        <template v-else v-for="(category, key) in filteredCategories" :key="key">
             <div class="index_cat">
                 <i class="fab fa-gripfire"></i>
                 <span>{{ $t('general.sidebar.' + key) }}</span>
             </div>
             <div class="games">
-                <div v-for="game in category" :key="game.id" class="game_poster"
-                    @click="game.isDisabled ? null : $router.push(`/casino/game/${game.id}`)">
+                <div v-for="game in category" :key="game.id" :class="['game_poster', { 'is-disabled': game.isDisabled }]">
+                    <a v-if="!game.isDisabled" class="game-open-link" :href="`/casino/game/${game.id}`" @click.prevent="openGame(game)"><span class="sr-only">Play {{ game.name }}</span></a>
                     <div class="game_poster-image" :class="`game-${game.id}-image`">
                         <button :class="['btn-favorite', isFavorite(game.id) ? 'active' : '']"
                             @click.stop="toggleFavorite(game.id)"
+                            @keydown.stop
                             :title="isFavorite(game.id) ? 'Remove from favorites' : 'Add to favorites'">
                             <i :class="isFavorite(game.id) ? 'fas fa-star' : 'far fa-star'"></i>
                         </button>
@@ -83,8 +99,16 @@
             </div>
         </template>
 
-        <div class="games-empty" v-if="!hasGames && !onlyFavorites">
+        <div class="games-empty" v-if="!onlyFavorites && !hasGames && store.gamesLoading">
             <loader></loader>
+        </div>
+        <div class="games-empty games-message" v-else-if="!onlyFavorites && !hasGames && store.gamesLoadError" role="alert">
+            <div>Games could not load.</div>
+            <button type="button" class="games-retry" @click="store.updateData()">Retry</button>
+        </div>
+        <div class="games-empty games-message" v-else-if="!onlyFavorites && !hasGames">
+            <div>{{ searchQuery ? 'No games match your search.' : 'No games available.' }}</div>
+            <button v-if="searchQuery" type="button" class="games-retry" @click="searchQuery = ''">Clear search</button>
         </div>
     </div>
 </template>
@@ -100,8 +124,15 @@ export default {
         onlyFavorites: { type: Boolean, default: false }
     },
     data() {
+        let favorites = [];
+        try {
+            const saved = JSON.parse(localStorage.getItem('ratino_favorites') || '[]');
+            favorites = Array.isArray(saved) ? saved : [];
+        } catch (_) {}
+
         return {
-            favorites: JSON.parse(localStorage.getItem('ratino_favorites') || '[]')
+            favorites,
+            searchQuery: ''
         };
     },
     computed: {
@@ -109,14 +140,29 @@ export default {
             return useAppStore();
         },
         hasGames() {
-            return this.categories && Object.keys(this.categories).length > 0;
+            return Object.keys(this.filteredCategories).length > 0;
         },
         favoriteGamesList() {
             const allGames = this.store.games || [];
             return allGames.filter((g) => g && this.favorites.includes(g.id));
+        },
+        visibleFavoriteGamesList() {
+            const query = this.searchQuery.trim().toLocaleLowerCase();
+            return this.favoriteGamesList.filter((game) => !query || game.name.toLocaleLowerCase().includes(query));
+        },
+        filteredCategories() {
+            const query = this.searchQuery.trim().toLocaleLowerCase();
+            if (!query) return this.categories || {};
+            return Object.fromEntries(Object.entries(this.categories || {}).map(([key, games]) => [
+                key,
+                games.filter((game) => game.name.toLocaleLowerCase().includes(query))
+            ]).filter(([, games]) => games.length));
         }
     },
     methods: {
+        openGame(game) {
+            if (!game.isDisabled) this.$router.push(`/casino/game/${game.id}`);
+        },
         isFavorite(id) {
             return this.favorites.includes(id);
         },
@@ -178,6 +224,43 @@ export default {
     margin-bottom: 30px;
 }
 
+.games-search {
+    width: min(100%, 460px);
+    height: 46px;
+    margin: 8px auto 22px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    background: #1d1e24;
+    color: rgba(255, 255, 255, 0.5);
+
+    &:focus-within {
+        border-color: rgba(229, 31, 73, 0.7);
+        box-shadow: 0 0 0 3px rgba(229, 31, 73, 0.15);
+    }
+
+    input {
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #fff;
+        font: inherit;
+    }
+
+    button {
+        padding: 6px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+    }
+}
+
 .index_cat {
     font-size: 1.3em;
     font-weight: 700;
@@ -225,6 +308,26 @@ export default {
     align-items: center;
 }
 
+.games-message {
+    flex-direction: column;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.games-retry {
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    cursor: pointer;
+
+    &:hover, &:focus-visible {
+        border-color: #e51f49;
+        outline: none;
+    }
+}
+
 .games {
     display: flex;
     flex-wrap: wrap;
@@ -245,6 +348,20 @@ export default {
     user-select: none;
     position: relative;
 
+    &.is-disabled { cursor: default; }
+
+    .game-open-link {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        border-radius: inherit;
+
+        &:focus-visible {
+            outline: none;
+            box-shadow: inset 0 0 0 3px #ffb703;
+        }
+    }
+
     &:hover {
         transform: translateY(-4px) scale(1.02);
         border-color: rgba(229, 31, 73, 0.45);
@@ -259,6 +376,8 @@ export default {
             opacity: 1;
         }
     }
+
+    &:focus-within .btn-favorite { opacity: 1; }
 
     .btn-favorite {
         position: absolute;
@@ -284,6 +403,12 @@ export default {
             transform: scale(1.15);
             background: rgba(0, 0, 0, 0.8);
             color: #ffb703;
+        }
+
+        &:focus-visible {
+            opacity: 1;
+            outline: 2px solid #ffb703;
+            outline-offset: 2px;
         }
 
         &.active {

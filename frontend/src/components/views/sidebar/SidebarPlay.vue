@@ -1,8 +1,8 @@
 <template>
     <div class="sidebar-play">
-        <div class="play-button" @click="play">
+        <button type="button" class="play-button" @click="play">
             {{ isExtendedGameStarted() ? (gameInstance.game.canBeFinished !== false ? $t('general.take') : $t('general.play')) : $t('general.play') }}
-        </div>
+        </button>
     </div>
 </template>
 
@@ -30,9 +30,17 @@ export default {
                 return;
             }
 
+            const wager = typeof ref.customWagerCalculation === 'function'
+                ? Number(ref.customWagerCalculation())
+                : Number(this.gameInstance.bet);
+            if (!Number.isFinite(wager) || wager <= 0) {
+                this.$toast.error('Enter a valid wager');
+                return;
+            }
+
             const request = {
                 api_id: this.gameInstance.game.id,
-                bet: this.gameInstance.bet,
+                bet: wager,
                 currency: useAppStore().currency,
                 demo: useAppStore().demo,
                 quick: useAppStore().quick,
@@ -59,6 +67,7 @@ export default {
 
 <style lang="scss" scoped>
 .play-button {
+    width: 100%;
     margin-top: 12px;
     padding: 16px;
     border-radius: 6px;
@@ -68,10 +77,13 @@ export default {
     text-align: center;
     cursor: pointer;
     font-size: 1.05em;
+    font-family: inherit;
+    border: 0;
     user-select: none;
     transition: all .3s ease;
 
     &:hover { filter: brightness(1.1); }
+    &:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 
     &.disabled {
         opacity: .5;

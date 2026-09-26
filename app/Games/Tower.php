@@ -16,6 +16,11 @@ use App\Games\Kernel\ProvablyFairResult;
 
 class Tower extends ExtendedGame implements MultiplierCanBeLimited {
 
+    public function isValidPlayData(Data $data): bool {
+        $mines = $data->game()->mines ?? null;
+        return is_numeric($mines) && (float) $mines === (float) intval($mines) && intval($mines) >= 1 && intval($mines) <= 4;
+    }
+
     function metadata(): Metadata {
         return new class extends Metadata {
             function id(): string {
@@ -72,11 +77,17 @@ class Tower extends ExtendedGame implements MultiplierCanBeLimited {
         return new ContinueGame($game, ['death' => $row]);
     }
 
+    public function isValidTurnData(\App\Models\Game $game, array $turnData): bool {
+        $cell = $turnData['cell'] ?? null;
+        return is_numeric($cell) && (float) $cell === (float) intval($cell) && intval($cell) >= 0 && intval($cell) <= 4;
+    }
+
     public function isLoss(ProvablyFairResult $result, \App\Models\Game $game, array $turnData): bool {
-        /*if($this->getTurn($game) > 1) for($i = 1; $i < $this->getTurn($game); $i++) {
-            if(in_array($this->gameData($game)[strval($i)], (new ProvablyFair($this, $result->server_seed()))->result()->result()[$this->gameData($game)['mines'] - 1][$i - 1])) return false;
-        }*/
-        return in_array(intval($turnData['cell']), (new ProvablyFair($this, $result->server_seed()))->result()->result()[$this->gameData($game)['mines'] - 1][$this->getTurn($game)]);
+        $grid = (new ProvablyFair($this, $result->server_seed()))->result()->result()[$this->gameData($game)['mines'] - 1];
+        foreach($game->data['history'] ?? [] as $row => $cell) {
+            if(in_array(intval($cell), $grid[$row])) return false;
+        }
+        return in_array(intval($turnData['cell']), $grid[$this->getTurn($game)]);
     }
 
     function result(ProvablyFairResult $result): array {

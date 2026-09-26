@@ -7,8 +7,6 @@ use App\Games\Kernel\Multiplayer\MultiplayerGame;
 use App\Games\Kernel\ProvablyFairResult;
 use App\Models\Transaction;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 abstract class ExtendedGame extends Game {
 
@@ -19,12 +17,14 @@ abstract class ExtendedGame extends Game {
     abstract function isLoss(ProvablyFairResult $result, \App\Models\Game $game, array $turnData): bool;
 
     public function process(Data $data) {
-        if(!$this->acceptsDemo() && ($data->guest() || $data->demo())) return ['code' => -7, 'message' => 'This game does not accept any demo bets'];
+        if($data->guest()) return ['code' => -9, 'message' => 'You need to login in order to play this game'];
+        if(!$this->acceptsDemo() && $data->demo()) return ['code' => -7, 'message' => 'This game does not accept any demo bets'];
         if($this instanceof MultiplayerGame && $this->state()->hasBetFrom($data->user()->_id)) return ['code' => -6, 'message' => "Can't place more than one bet"];
         if(!$this->acceptBet($data)) return ['code' => -6, 'message' => "Game is not accepting bets at this stage"];
 
-        if(!$data->guest()) $data->user()->balance(Currency::find($data->currency()))->demo($data->demo())->subtract($data->bet(), Transaction::builder()->game($data->id())->message('Game')->get());
-        if(!$data->guest()) \App\Services\VipService::onBet($data->user(), $data->bet(), $data->demo());
+        $balance = $data->user()->balance(Currency::find($data->currency()))->demo($data->demo());
+        if(!$balance->subtract($data->bet(), Transaction::builder()->game($data->id())->message('Game')->get())) return ['code' => -4, 'message' => 'Not enough money'];
+        \App\Services\VipService::onBet($data->user(), $data->bet(), $data->demo());
 
         $game = \App\Models\Game::create([
             'id' => \App\Models\Game::count() + 1,
@@ -45,7 +45,9 @@ abstract class ExtendedGame extends Game {
                 'user_data' => $data->toArray()
             ],
             'demo' => $data->demo(),
-            'type' => $this instanceof MultiplayerGame ? 'multiplayer' : 'extended'
+            'type' => $this instanceof MultiplayerGame ? 'multiplayer' : 'extended',
+            'settled' => false,
+            'turn_lock' => false
         ]);
 
         $this->start($game);
@@ -61,25 +63,38 @@ abstract class ExtendedGame extends Game {
     }
 
     public function finish(\App\Models\Game $game) {
-        $game->update([
-            'profit' => $game->status === 'lose' ? 0 : $game->wager * $game->multiplier,
-            'status' => $game->status === 'in-progress' ? 'win' : $game->status
-        ]);
+        $turn = $this->getTurn($game);
+        $claimQuery = \App\Models\Game::where('_id', $game->_id)
+            ->where('settled', '!=', true)
+            ->where('turn_lock', '!=', true)
+            ->whereIn('status', ['in-progress', 'win', 'lose']);
+        if($turn === 0) $claimQuery->where('status', 'in-progress');
+        $claim = $claimQuery->update(['settled' => true]);
+        if(!$claim) return false;
+
+        if($turn == 0) {
+            $cancellation = $this->handleCancellation($game);
+            if(is_array($cancellation) && isset($cancellation['error'])) {
+                \App\Models\Game::where('_id', $game->_id)->update(['settled' => false]);
+                return false;
+            }
+            return true;
+        }
+
+        $status = $game->status === 'lose' || $game->multiplier <= 0 ? 'lose' : 'win';
+        $profit = $status === 'lose' ? 0 : round($game->wager * $game->multiplier, 2);
+        $game->update(['profit' => $profit, 'status' => $status]);
 
         if($game->user != null) {
             $currency = Currency::find($game->currency);
             $user = User::where('_id', $game->user)->first();
+            if($user == null) return true;
 
-            if($this->getTurn($game) == 0) {
-                $this->handleCancellation($game);
-            } else {
-                if ($game->profit > 0) {
-                    $user->balance($currency)->demo($game->demo)->quiet()->add($game->profit, Transaction::builder()->game($game->game)->message('Win')->get());
-                }
-                app(\App\Services\SupabaseService::class)->recordGame($game, $user);
-                \App\Services\BountyService::check($user, $game);
-            }
+            if($profit > 0) $user->balance($currency)->demo($game->demo)->quiet()->add($profit, Transaction::builder()->game($game->game)->message('Win')->get());
+            app(\App\Services\SupabaseService::class)->recordGame($game, $user);
+            \App\Services\BountyService::check($user, $game);
         }
+        return true;
     }
 
     protected function handleCancellation(\App\Models\Game $game) {
@@ -99,6 +114,14 @@ abstract class ExtendedGame extends Game {
 
     protected function acceptsDemo() {
         return true;
+    }
+
+    public function isValidTurnData(\App\Models\Game $game, array $turnData): bool {
+        return true;
+    }
+
+    public function shouldReseedTurn(\App\Models\Game $game): bool {
+        return $this->getTurn($game) === 0;
     }
 
     public function inHistory(\App\Models\Game $game, $validate) {

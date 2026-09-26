@@ -14,6 +14,11 @@ use App\Games\Kernel\RejectedGameResult;
 
 class Limbo extends QuickGame implements MultiplierCanBeLimited {
 
+    public function isValidPlayData(Data $data): bool {
+        $target = $data->game()->target_payout ?? null;
+        return is_numeric($target) && is_finite((float) $target) && (float) $target >= 1.01 && (float) $target <= 1000000;
+    }
+
     function metadata(): Metadata {
         return new class extends Metadata {
             function id(): string {
@@ -58,7 +63,7 @@ class Limbo extends QuickGame implements MultiplierCanBeLimited {
 
     function result(ProvablyFairResult $result): array {
         $max_multiplier = 1e8; $house_edge = HouseEdgeModule::get($this, 0.99);
-        $float_point = $max_multiplier / ($result->extractFloat() * $max_multiplier) * $house_edge;
+        $float_point = min($max_multiplier, $house_edge / max($result->extractFloat(), 1 / 4294967296));
         return [floor($float_point * 100) / 100];
     }
 

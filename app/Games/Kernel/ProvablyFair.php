@@ -7,7 +7,7 @@ class ProvablyFair {
     private $server_seed;
     private $nonce;
 
-    public function __construct(Game $game, string $server_seed = null) {
+    public function __construct(Game $game, ?string $server_seed = null) {
         $this->game = $game;
         $this->client_seed = $game->client_seed();
         $this->server_seed = $server_seed == null ? $game->server_seed() : $server_seed;

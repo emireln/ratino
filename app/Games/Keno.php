@@ -15,6 +15,16 @@ use App\Models\Game;
 
 class Keno extends QuickGame implements MultiplierCanBeLimited
 {
+    public function isValidPlayData(Data $data): bool
+    {
+        $tiles = $data->game()->tiles ?? null;
+        if (! is_array($tiles) || count($tiles) < 1 || count($tiles) > 10) return false;
+        foreach ($tiles as $tile) {
+            if (! is_numeric($tile) || (float) $tile !== (float) intval($tile) || intval($tile) < 1 || intval($tile) > 40) return false;
+        }
+        return count($tiles) === count(array_unique(array_map('intval', $tiles)));
+    }
+
     public function metadata(): Metadata
     {
         return new class extends Metadata

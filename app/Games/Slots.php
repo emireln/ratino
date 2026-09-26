@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\Log;
 
 class Slots extends QuickGame implements MultiplierCanBeLimited {
 
+    public function isValidPlayData(Data $data): bool {
+        $lines = $data->game()->lines ?? null;
+        return is_numeric($lines) && (float) $lines === (float) intval($lines) && intval($lines) >= 1 && intval($lines) <= 20;
+    }
+
     private array $icons = ['apple', 'bananas', 'cherry', 'grapes', 'orange', 'pineapple', 'strawberry', 'watermelon', 'lemon', 'kiwi', 'raspberry', 'wild', 'scatter'];
 
     private array $payTable;
@@ -148,7 +153,7 @@ class Slots extends QuickGame implements MultiplierCanBeLimited {
         $win = $multiplierOnly
             ? $this->payTable[$number][$symbol] * $multiplier
             : $singleLineBet * $this->payTable[$number][$symbol] * $multiplier;
-        if($win < $wildWin[2]) $win = $wildWin[1];
+        if($win < $wildWin[2]) $win = $wildWin[2];
 
         return $win;
     }
@@ -184,6 +189,7 @@ class Slots extends QuickGame implements MultiplierCanBeLimited {
             }
         }
 
+        $numberOfScatters = min($numberOfScatters, 5);
         return $multiplierOnly
             ? $this->payTable[$numberOfScatters][12] * $this->scatterMultiplier
             : $this->payTable[$numberOfScatters][12] * $totalBet * $this->scatterMultiplier;

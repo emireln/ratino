@@ -18,8 +18,8 @@ class RainWhisper extends Whisper {
 
         $action = $data->action ?? 'status';
         if ($action === 'fund') {
-            $amount = floatval($data->amount ?? 0);
-            if ($amount <= 0) return ['code' => 2, 'message' => 'Invalid amount'];
+            $amount = round(floatval($data->amount ?? 0), 2);
+            if (!is_finite($amount) || $amount <= 0) return ['code' => 2, 'message' => 'Invalid amount'];
 
             $currency = Currency::find('credits');
             if ($this->user->balance($currency)->get() < $amount) return ['code' => 3, 'message' => 'Not enough balance'];
@@ -28,12 +28,20 @@ class RainWhisper extends Whisper {
                 ->where('_id', '!=', $this->user->_id)->get();
             if (count($users) < 1) return ['code' => 4, 'message' => 'Nobody online to rain on'];
 
-            $this->user->balance($currency)->subtract($amount, Transaction::builder()->message('Rain funded')->get());
+            $totalCents = (int) round($amount * 100);
+            $users = $users->shuffle()->take(min(count($users), $totalCents));
+            if(!$this->user->balance($currency)->subtract($amount, Transaction::builder()->message('Rain funded')->get())) {
+                return ['code' => 3, 'message' => 'Not enough balance'];
+            }
 
-            $share = $amount / count($users);
+            $baseCents = intdiv($totalCents, count($users));
+            $extraCents = $totalCents % count($users);
+            $share = round($amount / count($users), 2);
             $result = [];
-            foreach ($users as $user) {
-                $user->balance($currency)->add($share, Transaction::builder()->message('Rain from ' . $this->user->name)->get());
+            foreach ($users as $index => $user) {
+                $recipientCents = $baseCents + ($index < $extraCents ? 1 : 0);
+                $userShare = $recipientCents / 100;
+                if($userShare > 0) $user->balance($currency)->add($userShare, Transaction::builder()->message('Rain from ' . $this->user->name)->get());
                 $result[] = ['_id' => $user->_id, 'name' => $user->name, 'avatar' => $user->avatar];
             }
 

@@ -69,26 +69,7 @@ class Roulette extends QuickGame implements MultiplierCanBeLimited {
         return new SuccessfulQuickGameResult((new ProvablyFair($this))->result(), function(SuccessfulQuickGameResult $result, array $transformedResults) use($user, $data, $totalBet) {
             $multiplier = $this->getMultiplier($transformedResults, $data);
             if($multiplier > 0) {
-                $number = $transformedResults[0];
-                $profit = 0;
-
-                foreach((array) $data->game()->bet as $key => $value) {
-                    if($value == 0) continue;
-                    if(is_numeric($key) && intval($key) >= 0 && intval($key) <= 36 && $number == intval($key)) $profit += $value * HouseEdgeModule::apply($this, 36);
-                    else if($key === "row1" && in_array(strval($number), $this->rows['first'])) $profit += $value * HouseEdgeModule::apply($this, 3);
-                    else if($key === "row2" && in_array(strval($number), $this->rows['second'])) $profit += $value * HouseEdgeModule::apply($this, 3);
-                    else if($key === "row3" && in_array(strval($number), $this->rows['third'])) $profit += $value * HouseEdgeModule::apply($this, 3);
-                    else if($key === "1-12" && in_array(strval($number), $this->rows['numeric']['first'])) $profit += $value * HouseEdgeModule::apply($this, 3);
-                    else if($key === "13-24" && in_array(strval($number), $this->rows['numeric']['second'])) $profit += $value * HouseEdgeModule::apply($this, 3);
-                    else if($key === "25-36" && in_array(strval($number), $this->rows['numeric']['third'])) $profit += $value * HouseEdgeModule::apply($this, 3);
-                    else if($key === 'red' && in_array(strval($number), $this->rows['red'])) $profit += $value * HouseEdgeModule::apply($this, 2);
-                    else if($key === 'black' && in_array(strval($number), $this->rows['black'])) $profit += $value * HouseEdgeModule::apply($this, 2);
-                    else if($key === 'even' && in_array(strval($number), $this->rows['e/o']['even'])) $profit += $value * HouseEdgeModule::apply($this, 2);
-                    else if($key === 'odd' && in_array(strval($number), $this->rows['e/o']['odd'])) $profit += $value * HouseEdgeModule::apply($this, 2);
-                    else if($key === '1-18' && in_array(strval($number), $this->rows['half']['first'])) $profit += $value * HouseEdgeModule::apply($this, 2);
-                    else if($key === "19-36" && in_array(strval($number), $this->rows['half']['second'])) $profit += $value * HouseEdgeModule::apply($this, 2);
-                }
-
+                $profit = round($data->bet() * $multiplier, 2);
                 $result->winCustom($user, $data, $profit, $multiplier);
             } else $result->lose();
 
@@ -100,28 +81,50 @@ class Roulette extends QuickGame implements MultiplierCanBeLimited {
         });
     }
 
-    private function getMultiplier(array $result, Data $data) {
-        $number = $result[0];
-        $multiplier = 0;
+    public function customWagerCalculation(Data $data): ?bool {
+        $bets = (array) ($data->game()->bet ?? []);
+        $validKeys = array_merge(range(0, 36), ['row1', 'row2', 'row3', '1-12', '13-24', '25-36', 'red', 'black', 'even', 'odd', '1-18', '19-36']);
+        $validKeys = array_map('strval', $validKeys);
+        $total = 0.0;
 
-        foreach((array) $data->game()->bet as $key => $value) {
-            if($value == 0) continue;
-            if(is_numeric($key) && intval($key) >= 0 && intval($key) <= 36 && $number == intval($key)) $multiplier += HouseEdgeModule::apply($this, 36);
-            else if($key === "row1" && in_array(strval($number), $this->rows['first'])) $multiplier += HouseEdgeModule::apply($this, 3);
-            else if($key === "row2" && in_array(strval($number), $this->rows['second'])) $multiplier += HouseEdgeModule::apply($this, 3);
-            else if($key === "row3" && in_array(strval($number), $this->rows['third'])) $multiplier += HouseEdgeModule::apply($this, 3);
-            else if($key === "1-12" && in_array(strval($number), $this->rows['numeric']['first'])) $multiplier += HouseEdgeModule::apply($this, 3);
-            else if($key === "13-24" && in_array(strval($number), $this->rows['numeric']['second'])) $multiplier += HouseEdgeModule::apply($this, 3);
-            else if($key === "25-36" && in_array(strval($number), $this->rows['numeric']['third'])) $multiplier += HouseEdgeModule::apply($this, 3);
-            else if($key === 'red' && in_array(strval($number), $this->rows['red'])) $multiplier += HouseEdgeModule::apply($this, 2);
-            else if($key === 'black' && in_array(strval($number), $this->rows['black'])) $multiplier += HouseEdgeModule::apply($this, 2);
-            else if($key === 'even' && in_array(strval($number), $this->rows['e/o']['even'])) $multiplier += HouseEdgeModule::apply($this, 2);
-            else if($key === 'odd' && in_array(strval($number), $this->rows['e/o']['odd'])) $multiplier += HouseEdgeModule::apply($this, 2);
-            else if($key === '1-18' && in_array(strval($number), $this->rows['half']['first'])) $multiplier += HouseEdgeModule::apply($this, 2);
-            else if($key === "19-36" && in_array(strval($number), $this->rows['half']['second'])) $multiplier += HouseEdgeModule::apply($this, 2);
+        foreach($bets as $key => $value) {
+            if(!in_array((string) $key, $validKeys, true) || !is_numeric($value)) return false;
+            $amount = (float) $value;
+            if(!is_finite($amount) || $amount < 0 || abs(round($amount, 2) - $amount) > 0.000001) return false;
+            $total += $amount;
         }
 
-        return $multiplier;
+        $total = round($total, 2);
+        if($total < Currency::find($data->currency())->minBet()) return false;
+        $data->bet($total);
+        return true;
+    }
+
+    private function getMultiplier(array $result, Data $data) {
+        $number = $result[0];
+        $totalBet = 0.0;
+        $payout = 0.0;
+
+        foreach((array) $data->game()->bet as $key => $value) {
+            $value = (float) $value;
+            $totalBet += $value;
+            if($value == 0) continue;
+            if(is_numeric($key) && intval($key) >= 0 && intval($key) <= 36 && $number == intval($key)) $payout += $value * HouseEdgeModule::apply($this, 36);
+            else if($key === "row1" && in_array(strval($number), $this->rows['first'])) $payout += $value * HouseEdgeModule::apply($this, 3);
+            else if($key === "row2" && in_array(strval($number), $this->rows['second'])) $payout += $value * HouseEdgeModule::apply($this, 3);
+            else if($key === "row3" && in_array(strval($number), $this->rows['third'])) $payout += $value * HouseEdgeModule::apply($this, 3);
+            else if($key === "1-12" && in_array(strval($number), $this->rows['numeric']['first'])) $payout += $value * HouseEdgeModule::apply($this, 3);
+            else if($key === "13-24" && in_array(strval($number), $this->rows['numeric']['second'])) $payout += $value * HouseEdgeModule::apply($this, 3);
+            else if($key === "25-36" && in_array(strval($number), $this->rows['numeric']['third'])) $payout += $value * HouseEdgeModule::apply($this, 3);
+            else if($key === 'red' && in_array(strval($number), $this->rows['red'])) $payout += $value * HouseEdgeModule::apply($this, 2);
+            else if($key === 'black' && in_array(strval($number), $this->rows['black'])) $payout += $value * HouseEdgeModule::apply($this, 2);
+            else if($key === 'even' && in_array(strval($number), $this->rows['e/o']['even'])) $payout += $value * HouseEdgeModule::apply($this, 2);
+            else if($key === 'odd' && in_array(strval($number), $this->rows['e/o']['odd'])) $payout += $value * HouseEdgeModule::apply($this, 2);
+            else if($key === '1-18' && in_array(strval($number), $this->rows['half']['first'])) $payout += $value * HouseEdgeModule::apply($this, 2);
+            else if($key === "19-36" && in_array(strval($number), $this->rows['half']['second'])) $payout += $value * HouseEdgeModule::apply($this, 2);
+        }
+
+        return $totalBet > 0 ? $payout / $totalBet : 0;
     }
 
     public function usesCustomWagerCalculations() {

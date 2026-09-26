@@ -361,7 +361,10 @@
                         $('#i-a').on('click', () => {
                             $('.insurance').remove();
                             this.vm.sendTurn({type: 'insurance'}, (response) => {
-                                if(response.data.error) this.vm.$toast.error(this.vm.$t('general.error.invalid_wager'));
+                                if(response.data.error) {
+                                    this.vm.$toast.error(this.vm.$t('general.error.invalid_wager'));
+                                    return;
+                                }
                                 this.vm.$toast.success(this.vm.$t('general.insurance_success'));
                             });
                         });

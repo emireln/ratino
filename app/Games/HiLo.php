@@ -16,6 +16,11 @@ use App\Games\Kernel\ProvablyFairResult;
 
 class HiLo extends ExtendedGame implements MultiplierCanBeLimited {
 
+    public function isValidPlayData(Data $data): bool {
+        $starting = $data->game()->starting ?? null;
+        return is_numeric($starting) && (float) $starting === (float) intval($starting) && intval($starting) >= 1 && intval($starting) <= 52;
+    }
+
     function metadata(): Metadata {
         return new class extends Metadata {
             function id(): string {
@@ -66,7 +71,7 @@ class HiLo extends ExtendedGame implements MultiplierCanBeLimited {
         else if($turnData['type'] === 'same') $multiplier = HouseEdgeModule::apply($this, 16.83);
 
         $game->update([
-            'multiplier' => $this->getTurn($game) == 1 ? $multiplier : $game->multiplier + $multiplier
+            'multiplier' => $this->getTurn($game) == 1 ? $multiplier : $game->multiplier * $multiplier
         ]);
 
         $this->pushData($game, [strval($this->getTurn($game)) => $card]);
@@ -74,6 +79,12 @@ class HiLo extends ExtendedGame implements MultiplierCanBeLimited {
         $this->pushHistory($game, $card);
 
         return new ContinueGame($game, ['current' => $card]);
+    }
+
+    public function isValidTurnData(\App\Models\Game $game, array $turnData): bool {
+        $type = $turnData['type'] ?? null;
+        if(!in_array($type, ['higher', 'lower', 'same', 'skip'], true)) return false;
+        return $type !== 'skip' || $this->getTurn($game) < 4;
     }
 
     private function deck() {
@@ -134,6 +145,11 @@ class HiLo extends ExtendedGame implements MultiplierCanBeLimited {
     }
 
     public function isLoss(ProvablyFairResult $result, \App\Models\Game $game, array $turnData): bool {
+        for($turn = 1; $turn <= $this->getTurn($game); $turn++) {
+            $previousCard = $result->result()[$turn - 1] + 1;
+            if(($this->gameData($game)[strval($turn)] ?? null) !== $previousCard) return false;
+        }
+
         $card = (new ProvablyFair($this, $result->server_seed()))->result()->result()[$this->getTurn($game)] + 1;
         $generated = $this->deck()[$card];
         $current = $this->deck()[$this->gameData($game)['current']];

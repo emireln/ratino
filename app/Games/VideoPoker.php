@@ -37,6 +37,16 @@ class VideoPoker extends ExtendedGame implements MultiplierCanBeLimited {
 
     public function start(\App\Models\Game $game) {}
 
+    public function isValidTurnData(\App\Models\Game $game, array $turnData): bool {
+        if($this->getTurn($game) === 0) return true;
+        $hold = $turnData['hold'] ?? null;
+        if(!is_array($hold) || count($hold) > 5) return false;
+        foreach($hold as $index) {
+            if(!is_numeric($index) || (float) $index !== (float) intval($index) || intval($index) < 0 || intval($index) > 4) return false;
+        }
+        return count($hold) === count(array_unique(array_map('intval', $hold)));
+    }
+
     public function turn(\App\Models\Game $game, array $turnData): Turn {
         if($this->getTurn($game) === 1) {
             $game->update([
@@ -83,8 +93,10 @@ class VideoPoker extends ExtendedGame implements MultiplierCanBeLimited {
         for($i = 0; $i < 5; $i++) array_push($userTypes, $this->deck()[$deck[$i] + 1]['type']);
         for($i = 0; $i < 5; $i++) array_push($userSlots, $this->deck()[$deck[$i] + 1]['slot']);
 
-        $totalSlots = $userSlots[0] + $userSlots[1] + $userSlots[2] + $userSlots[3] + $userSlots[4];
-        $isStraight = $totalSlots == 20 || $totalSlots == 25 || $totalSlots == 30 || $totalSlots == 35 || $totalSlots == 40;
+        $sortedSlots = $userSlots;
+        sort($sortedSlots);
+        $isStraight = count(array_unique($sortedSlots)) === 5
+            && (($sortedSlots[4] - $sortedSlots[0] === 4) || $sortedSlots === [0, 9, 10, 11, 12]);
 
         $isFlush = count(array_count_values($userTypes)) == 1;
 
@@ -98,7 +110,7 @@ class VideoPoker extends ExtendedGame implements MultiplierCanBeLimited {
             else if($occur >= 2 && ($value === 'K' || $value === 'Q' || $value === 'A' || $value === 'J')) $pairs += 1;
         }
 
-        if(in_array('A', $userValues) && in_array('K', $userValues) && in_array('Q', $userValues) && in_array('J', $userValues) && in_array('10', $userValues)) return HouseEdgeModule::apply($this, 800);
+        if($isFlush && in_array('A', $userValues) && in_array('K', $userValues) && in_array('Q', $userValues) && in_array('J', $userValues) && in_array('10', $userValues)) return HouseEdgeModule::apply($this, 800);
         else if($isStraight && $isFlush) return HouseEdgeModule::apply($this, 60);
         else if($fours == 1) return HouseEdgeModule::apply($this, 22);
         else if($triplets == 1 && $pairs == 1) return HouseEdgeModule::apply($this, 9);

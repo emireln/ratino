@@ -26,7 +26,7 @@ class SupabaseService {
     }
 
     private function serviceKey(): string {
-        return config('supabase.service_role_key') ?: (config('supabase.anon_key') ?? '');
+        return config('supabase.service_role_key') ?? '';
     }
 
     public function signUp(string $email, string $password, string $name): ?array {

@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Currency\Currency;
+use Illuminate\Support\Facades\DB;
 use MongoDB\BSON\Decimal128;
+use MongoDB\Operation\FindOneAndUpdate;
 
 /**
  * VIP Club — 7 tiers, dynamic rakeback on every bet, one-time level-up
@@ -45,25 +47,34 @@ class VipService {
      * instantly and pays out tier-up milestones automatically.
      */
     public static function onBet(User $user, float $bet, bool $demo): void {
-        if ($demo || $bet <= 0) return;
+        if ($demo || !is_finite($bet) || $bet <= 0) return;
 
-        $wager = self::wager($user) + $bet;
+        $users = DB::connection('mongodb')->getCollection($user->getTable());
+        $updated = $users->findOneAndUpdate(
+            ['_id' => $user->_id],
+            ['$inc' => ['vip_wager' => new Decimal128(number_format($bet, 8, '.', ''))]],
+            ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER]
+        );
+        if($updated === null) return;
+
+        $wager = self::decimal($updated->vip_wager ?? 0);
         $before = self::tierIndex($wager - $bet);
         $after = self::tierIndex($wager);
-
-        $user->update([
-            'vip_wager' => new Decimal128(strval($wager)),
-            'vip_rakeback' => new Decimal128(strval(self::rakeback($user) + $bet * self::tier($before)['rakeback']))
-        ]);
+        $rakeback = $bet * self::tier($before)['rakeback'];
+        if($rakeback > 0) $users->updateOne(
+            ['_id' => $user->_id],
+            ['$inc' => ['vip_rakeback' => new Decimal128(number_format($rakeback, 8, '.', ''))]]
+        );
+        $user->setAttribute('vip_wager', $updated->vip_wager);
 
         if ($after > $before) {
             for ($i = $before + 1; $i <= $after; $i++) {
                 $tier = self::tier($i);
-                if (in_array($tier['name'], $user->vip_milestones ?? [])) continue;
-
-                $milestones = $user->vip_milestones ?? [];
-                array_push($milestones, $tier['name']);
-                $user->update(['vip_milestones' => $milestones]);
+                $claim = $users->updateOne(
+                    ['_id' => $user->_id, 'vip_milestones' => ['$ne' => $tier['name']]],
+                    ['$addToSet' => ['vip_milestones' => $tier['name']]]
+                );
+                if($claim->getMatchedCount() === 0) continue;
 
                 $user->balance(Currency::find('credits'))->add($tier['milestone'], Transaction::builder()->message('VIP Milestone (' . ucfirst($tier['name']) . ')')->get());
             }
@@ -79,12 +90,23 @@ class VipService {
      * Claim accrued rakeback into the player's balance.
      */
     public static function claim(User $user): float {
-        $amount = self::rakeback($user);
-        if ($amount <= 0) return 0;
+        $claimed = DB::connection('mongodb')->getCollection($user->getTable())->findOneAndUpdate(
+            ['_id' => $user->_id, 'vip_rakeback' => ['$gte' => new Decimal128('0.01')]],
+            ['$set' => ['vip_rakeback' => new Decimal128('0')]],
+            ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_BEFORE]
+        );
+        if($claimed === null) return 0;
+        $amount = round(self::decimal($claimed->vip_rakeback ?? 0), 2);
+        if($amount <= 0) return 0;
 
-        $user->update(['vip_rakeback' => new Decimal128('0')]);
         $user->balance(Currency::find('credits'))->add($amount, Transaction::builder()->message('VIP Rakeback')->get());
         return $amount;
+    }
+
+    private static function decimal($value): float {
+        return $value instanceof Decimal128
+            ? floatval($value->jsonSerialize()['$numberDecimal'])
+            : floatval($value);
     }
 
     public static function status(User $user): array {

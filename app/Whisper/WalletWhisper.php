@@ -2,6 +2,7 @@
 
 use App\Currency\Currency;
 use Carbon\Carbon;
+use MongoDB\BSON\UTCDateTime;
 
 class WalletWhisper extends Whisper {
 
@@ -35,14 +36,20 @@ class WalletWhisper extends Whisper {
         }
 
         if ($action === 'weekly_drop') {
-            $lastWeekly = $this->user->weekly_drop_claimed ? Carbon::parse($this->user->weekly_drop_claimed) : null;
-            if ($lastWeekly != null && $lastWeekly->diffInDays(Carbon::now()) < 7) {
+            $amount = 5000;
+            $claimedAt = Carbon::now();
+            $cutoff = $claimedAt->copy()->subDays(7);
+            $eligible = ['$or' => [
+                ['weekly_drop_claimed' => ['$exists' => false]],
+                ['weekly_drop_claimed' => null],
+                ['weekly_drop_claimed' => ['$lte' => new UTCDateTime($cutoff->getTimestamp() * 1000)]]
+            ]];
+            if(!$balance->addConditionally($amount, $eligible, [
+                'weekly_drop_claimed' => new UTCDateTime($claimedAt->getTimestamp() * 1000)
+            ], ['type' => 'weekly_drop', 'note' => 'Weekly Chips Drop'])) {
                 return ['code' => 2, 'message' => 'Weekly drop not available yet'];
             }
-
-            $amount = 5000;
-            $balance->add($amount, ['type' => 'weekly_drop', 'note' => 'Weekly Chips Drop']);
-            $this->user->update(['weekly_drop_claimed' => Carbon::now()]);
+            $this->user->setAttribute('weekly_drop_claimed', $claimedAt);
 
             return [
                 'success' => true,
@@ -58,7 +65,9 @@ class WalletWhisper extends Whisper {
             }
 
             $amount = 500;
-            $balance->add($amount, ['type' => 'faucet', 'note' => 'Emergency Chips Refill']);
+            if(!$balance->addIfBelow($amount, 50, ['type' => 'faucet', 'note' => 'Emergency Chips Refill'])) {
+                return ['code' => 3, 'message' => 'Refill only available when balance is below 50 Chips'];
+            }
 
             return [
                 'success' => true,

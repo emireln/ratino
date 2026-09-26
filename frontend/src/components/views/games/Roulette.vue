@@ -428,6 +428,9 @@
                     bet: this.bet
                 }
             },
+            customWagerCalculation() {
+                return this.totalBet;
+            },
             getBet(chip) {
                 if(this.bet[chip] == null) return 0;
                 return this.bet[chip];

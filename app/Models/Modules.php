@@ -43,7 +43,7 @@ class ModuleData {
         $this->data = $model->data;
     }
 
-    public function activeModules($data = null, $pfResult = null, Game $game = null): array {
+    public function activeModules($data = null, $pfResult = null, ?Game $game = null): array {
         $active = []; $result = [];
         foreach ($this->data as $module_id => $value) array_push($active, $module_id);
 

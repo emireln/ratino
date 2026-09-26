@@ -2,6 +2,7 @@
 
 use App\Currency\Currency;
 use App\Games\Kernel\Extended\ContinueGame;
+use App\Games\Kernel\Extended\FailedTurn;
 use App\Games\Kernel\Extended\ExtendedGame;
 use App\Games\Kernel\Extended\FinishGame;
 use App\Games\Kernel\Extended\Turn;
@@ -35,11 +36,11 @@ class Blackjack extends ExtendedGame {
         };
     }
 
-    private function nextCard(\App\Models\Game $game, $hidden = false, string $server_seed = null) {
-        $index = ($this->gameData($game)['index'] ?? 0) + 1;
-        if($server_seed == null) $this->pushData($game, ['index' => $index]);
+    private function nextCard(\App\Models\Game $game, $hidden = false, ?string $server_seed = null) {
+        $drawIndex = intval($this->gameData($game)['index'] ?? 0);
+        if($server_seed == null) $this->pushData($game, ['index' => $drawIndex + 1]);
 
-        $index = (new ProvablyFair($this, $server_seed == null ? $game->server_seed : $server_seed))->result()->result()[$index];
+        $index = (new ProvablyFair($this, $server_seed == null ? $game->server_seed : $server_seed))->result()->result()[$drawIndex];
         $deck = $this->deck()[$index + 1];
         return [
             'index' => $index,
@@ -61,12 +62,38 @@ class Blackjack extends ExtendedGame {
                 $this->nextCard($game, true)
             ],
             'split' => [],
-            'currentHand' => 0
+            'currentHand' => 0,
+            'doubled' => [false, false],
+            'doubleDrawn' => [false, false],
+            'handMultipliers' => [],
+            'dealerResolved' => false,
+            'dealerDraw' => [],
+            'insurance' => false,
+            'insuranceStake' => 0
         ]);
+    }
+
+    public function isValidTurnData(\App\Models\Game $game, array $turnData): bool {
+        return in_array($turnData['type'] ?? null, ['info', 'hit', 'stand', 'double', 'split', 'insurance'], true);
+    }
+
+    public function shouldReseedTurn(\App\Models\Game $game): bool {
+        return false;
     }
 
     public function turn(\App\Models\Game $game, array $turnData): Turn {
         $user = User::where('_id', $game->user)->first();
+        if($user == null) return new FailedTurn($game, ['error' => true]);
+
+        $gameData = $this->gameData($game);
+        $handIndex = intval($gameData['currentHand'] ?? 0);
+        if($handIndex < 0 || $handIndex > 1) return new FailedTurn($game, ['error' => true]);
+        $handKey = $handIndex === 0 ? 'player' : 'split';
+        $hand = $gameData[$handKey] ?? [];
+        $baseWager = floatval($this->userData($game)['bet'] ?? 0);
+        $doubled = $gameData['doubled'] ?? [false, false];
+        $doubleDrawn = $gameData['doubleDrawn'] ?? [false, false];
+        $failed = fn() => new FailedTurn($game, ['error' => true]);
 
         $updateRestore = function() use(&$game) {
             $data = $game->data['user_data'];
@@ -86,17 +113,15 @@ class Blackjack extends ExtendedGame {
             ]);
         };
 
-        switch ($turnData['type']) {
+        switch ($turnData['type'] ?? null) {
             case 'info':
+                if($game->data['turn'] > 1) return $failed();
                 $updateRestore();
                 return new ContinueGame($game, ['player' => $this->gameData($game)['player'], 'dealer' => $this->gameData($game)['dealer'][0]]);
             case 'split':
-                if ($user != null && $user->balance(Currency::find($game->currency))->demo($game->demo)->get() < $game->wager) return new ContinueGame($game, ['error' => true]);
-                $user->balance(Currency::find($game->currency))->demo($game->demo)->subtract($game->wager, Transaction::builder()->game($this->metadata()->id())->message('Split')->get());
-
-                $game->update([
-                    'wager' => $game->wager * 2
-                ]);
+                if(count($hand) !== 2 || count($gameData['split'] ?? []) > 0 || $hand[0]['blackjack_value'] !== $hand[1]['blackjack_value']) return $failed();
+                if(!$user->balance(Currency::find($game->currency))->demo($game->demo)->subtract($baseWager, Transaction::builder()->game($this->metadata()->id())->message('Split')->get())) return $failed();
+                $game->update(['wager' => $game->wager + $baseWager]);
 
                 $this->pushData($game, [
                     'player' => [
@@ -106,7 +131,10 @@ class Blackjack extends ExtendedGame {
                     'split' => [
                         $this->gameData($game)['player'][0],
                         $this->nextCard($game)
-                    ]
+                    ],
+                    'doubled' => [false, false],
+                    'doubleDrawn' => [false, false],
+                    'handMultipliers' => []
                 ]);
 
                 $updateRestore();
@@ -115,86 +143,78 @@ class Blackjack extends ExtendedGame {
                     'player' => $this->gameData($game)['player']
                 ]);
             case 'hit':
+                if(count($hand) < 2 || $this->getScore($hand) >= 21 || (!empty($doubled[$handIndex]) && !empty($doubleDrawn[$handIndex]))) return $failed();
                 $card = $this->nextCard($game);
-                $player = $this->gameData($game)[$this->gameData($game)['currentHand'] == 0 ? 'player' : 'split'];
-                array_push($player, $card);
-                $this->pushData($game, [
-                    $this->gameData($game)['currentHand'] == 0 ? 'player' : 'split' => $player
-                ]);
+                $hand = $this->gameData($game)[$handKey];
+                array_push($hand, $card);
+                $update = [$handKey => $hand];
+                if(!empty($doubled[$handIndex])) {
+                    $doubleDrawn[$handIndex] = true;
+                    $update['doubleDrawn'] = $doubleDrawn;
+                }
+                $this->pushData($game, $update);
                 $updateRestore();
                 return new ContinueGame($game, [
                     'player' => $card
                 ]);
             case 'double':
-                if ($user != null && $user->balance(Currency::find($game->currency))->demo($game->demo)->get() < $game->wager) return new ContinueGame($game, ['error' => true]);
-                $user->balance(Currency::find($game->currency))->demo($game->demo)->subtract($game->wager, Transaction::builder()->game($game->game)->message('Double')->get());
-                $game->update([
-                    'wager' => $game->wager * 2
-                ]);
+                if(count($hand) !== 2 || !empty($doubled[$handIndex])) return $failed();
+                if(!$user->balance(Currency::find($game->currency))->demo($game->demo)->subtract($baseWager, Transaction::builder()->game($game->game)->message('Double')->get())) return $failed();
+                $doubled[$handIndex] = true;
+                $game->update(['wager' => $game->wager + $baseWager]);
+                $this->pushData($game, ['doubled' => $doubled]);
                 $updateRestore();
                 return new ContinueGame($game, []);
             case 'insurance':
-                if (isset($this->gameData($game)['insurance'])) return new ContinueGame($game, []);
-
-                if ($user != null && $user->balance(Currency::find($game->currency))->demo($game->demo)->get() < $game->wager / 2) return new ContinueGame($game, ['error' => true]);
-                $user->balance(Currency::find($game->currency))->demo($game->demo)->subtract($game->wager / 2, Transaction::builder()->game($game->game)->message('Insurance')->get());
-                $game->update([
-                    'wager' => $game->wager / 2
-                ]);
-                $this->pushData($game, ['insurance' => true]);
+                $insuranceStake = $baseWager / 2;
+                if(!empty($gameData['insurance']) || $handIndex !== 0 || count($gameData['split'] ?? []) > 0 || count($hand) !== 2 || ($gameData['dealer'][0]['blackjack_value'] ?? null) !== 11 || $game->data['turn'] > 2) return $failed();
+                if(!$user->balance(Currency::find($game->currency))->demo($game->demo)->subtract($insuranceStake, Transaction::builder()->game($game->game)->message('Insurance')->get())) return $failed();
+                $game->update(['wager' => $game->wager + $insuranceStake]);
+                $this->pushData($game, ['insurance' => true, 'insuranceStake' => $insuranceStake]);
                 $updateRestore();
                 return new ContinueGame($game, []);
             case 'stand':
-                $player = $this->gameData($game)[$this->gameData($game)['currentHand'] == 0 ? 'player' : 'split'];
-                $dealer = $this->gameData($game)['dealer'];
-
-                $playerScore = $this->getScore($player);
+                if(count($hand) < 2) return $failed();
+                $dealer = $gameData['dealer'];
                 $dealerScore = $this->getScore($dealer);
-
-                $playerHandSize = count($player);
-
-                $dealerDraw = [];
-
-                $checkDealerScore = function () use (&$checkDealerScore, &$dealerScore, &$playerScore, &$dealer, &$game, &$dealerDraw) {
-                    if ($dealerScore < 17 && $playerScore <= 21) {
+                $dealerDraw = $gameData['dealerDraw'] ?? [];
+                if(empty($gameData['dealerResolved'])) {
+                    while($dealerScore < 17) {
                         $card = $this->nextCard($game);
                         array_push($dealerDraw, $card);
                         array_push($dealer, $card);
                         $dealerScore = $this->getScore($dealer);
-                        $checkDealerScore();
                     }
-                };
-
-                $checkDealerScore();
-
-                $multiplier = 0;
-
-                if ($playerScore == $dealerScore) {
-                    if ($playerScore <= 21) $multiplier = 1;
-                } else if ($playerScore > $dealerScore) {
-                    if ($playerScore == 21 && $playerHandSize < 3) $multiplier = HouseEdgeModule::apply($this, 2);
-                    else if ($playerScore <= 21) $multiplier = HouseEdgeModule::apply($this, 2);
-                } else if ($playerScore < $dealerScore) {
-                    if ($playerScore <= 21 && $dealerScore > 21) $multiplier = HouseEdgeModule::apply($this, 2);
+                    $this->pushData($game, ['dealer' => $dealer, 'dealerResolved' => true, 'dealerDraw' => $dealerDraw]);
                 }
 
-                if ($multiplier == 0 && count($this->gameData($game)['split']) > 0 && $this->gameData($game)['currentHand'] == 0) {
-                    $this->pushData($game, [
-                        'currentHand' => 1
-                    ]);
+                $dealerBlackjack = count($dealer) === 2 && $dealerScore === 21;
+                $multiplier = $this->handMultiplier($hand, $dealer);
+                if(count($gameData['split'] ?? []) > 0 && $handIndex === 0) {
+                    $handMultipliers = $gameData['handMultipliers'] ?? [];
+                    $handMultipliers[0] = $multiplier;
+                    $this->pushData($game, ['handMultipliers' => $handMultipliers, 'currentHand' => 1]);
+                    $updateRestore();
                     return new ContinueGame($game, []);
                 }
 
+                $hands = count($gameData['split'] ?? []) > 0
+                    ? [$gameData['player'], $gameData['split']]
+                    : [$gameData['player']];
+                $handMultipliers = $gameData['handMultipliers'] ?? [];
+                $handMultipliers[$handIndex] = $multiplier;
+                $payout = 0;
+                foreach($hands as $index => $settledHand) {
+                    $settledMultiplier = $handMultipliers[$index] ?? 0;
+                    $handWeight = !empty($doubled[$index]) ? 2 : 1;
+                    $payout += $baseWager * $handWeight * $settledMultiplier;
+                }
+                if($dealerBlackjack && !empty($gameData['insurance'])) $payout += floatval($gameData['insuranceStake']) * 3;
+                $payout = round($payout, 2);
+                $multiplier = $game->wager > 0 ? $payout / $game->wager : 0;
                 $dealer[1]['hidden'] = false;
-
-                $this->pushData($game, [
-                    $this->gameData($game)['currentHand'] == 0 ? 'player' : 'split' => $player,
-                    'dealer' => $dealer
-                ]);
-
-                $game->update([
-                    'multiplier' => $multiplier
-                ]);
+                $this->pushData($game, ['dealer' => $dealer, 'handMultipliers' => $handMultipliers]);
+                $game->update(['multiplier' => $multiplier]);
                 $updateRestore();
                 return new FinishGame($game, [
                     'dealerReveal' => $dealer[1],
@@ -202,8 +222,20 @@ class Blackjack extends ExtendedGame {
                 ]);
         }
 
-        $updateRestore();
-        return new ContinueGame($game, []);
+        return $failed();
+    }
+
+    private function handMultiplier(array $player, array $dealer): float {
+        $playerScore = $this->getScore($player);
+        $dealerScore = $this->getScore($dealer);
+        if($playerScore > 21) return 0;
+        $playerNatural = count($player) === 2 && $playerScore === 21;
+        $dealerNatural = count($dealer) === 2 && $dealerScore === 21;
+        if($dealerNatural) return $playerNatural ? 1 : 0;
+        if($playerNatural) return HouseEdgeModule::apply($this, 2.5);
+        if($playerScore === $dealerScore) return 1;
+        if($dealerScore > 21 || $playerScore > $dealerScore) return HouseEdgeModule::apply($this, 2);
+        return 0;
     }
 
     public function isLoss(ProvablyFairResult $result, \App\Models\Game $game, array $turnData): bool {
@@ -215,7 +247,7 @@ class Blackjack extends ExtendedGame {
     }
 
     function result(ProvablyFairResult $result): array {
-        return $this->getCards($result, 52);
+        return $this->getCards($result, 208);
     }
 
     private function getScore($hand) {

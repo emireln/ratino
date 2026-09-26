@@ -15,6 +15,13 @@ use App\Models\User;
 
 class Wheel extends QuickGame implements MultiplierCanBeLimited {
 
+    public function isValidPlayData(Data $data): bool {
+        $mode = $data->game()->mode ?? null;
+        $target = $data->game()->target ?? null;
+        return ($mode === 'double' && in_array($target, ['green', 'red', 'black'], true))
+            || ($mode === 'x50' && in_array($target, ['yellow', 'green', 'red', 'black'], true));
+    }
+
     function metadata(): Metadata {
         return new class extends Metadata {
             public function id(): string {
@@ -134,9 +141,15 @@ class Wheel extends QuickGame implements MultiplierCanBeLimited {
     }
 
     public function multiplier(?\App\Models\Game $game, ?Data $data, ProvablyFairResult $result): float {
-        $target = $data->game()->mode;
-        if($target === 'x50') return $data->game()->target === 'yellow' ? HouseEdgeModule::apply($this, 50) : ($target === 'red' ? HouseEdgeModule::apply($this, 3) : ($target === 'green' ? HouseEdgeModule::apply($this, 5) : HouseEdgeModule::apply($this, 2)));
-        else return $target === 'red' || $target === 'black' ? HouseEdgeModule::apply($this, 2) : HouseEdgeModule::apply($this, 14);
+        $mode = $data->game()->mode;
+        $target = $data->game()->target;
+        if($mode === 'x50') return match ($target) {
+            'yellow' => HouseEdgeModule::apply($this, 50),
+            'red' => HouseEdgeModule::apply($this, 3),
+            'green' => HouseEdgeModule::apply($this, 5),
+            default => HouseEdgeModule::apply($this, 2),
+        };
+        return $target === 'red' || $target === 'black' ? HouseEdgeModule::apply($this, 2) : HouseEdgeModule::apply($this, 14);
     }
 
     public function getBotData(): array {

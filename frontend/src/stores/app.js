@@ -18,6 +18,8 @@ export const useAppStore = defineStore('app', {
         gameInstance: {},
 
         games: [],
+        gamesLoading: false,
+        gamesLoadError: false,
         currencies: [],
         recentGameHistory: [],
 
@@ -59,12 +61,27 @@ export const useAppStore = defineStore('app', {
                 localStorage.setItem('ratino_user', JSON.stringify(data));
             }).catch(() => {});
         },
-        updateData() {
-            client.post('/api/data/games').then(({ data }) => this.games = data).catch(() => {});
-            client.post('/api/data/currencies').then(({ data }) => {
+        async updateData() {
+            this.gamesLoading = true;
+            this.gamesLoadError = false;
+            const [gamesResult, currenciesResult] = await Promise.allSettled([
+                client.post('/api/data/games'),
+                client.post('/api/data/currencies')
+            ]);
+
+            if (gamesResult.status === 'fulfilled') this.games = gamesResult.value.data;
+            else this.gamesLoadError = true;
+
+            if (currenciesResult.status === 'fulfilled') {
+                const data = currenciesResult.value.data;
                 this.currencies = data;
-                if (!this.currency || data[this.currency] === undefined) this.currency = data[Object.keys(data)[0]].id;
-            }).catch(() => {});
+                if (!this.currency || data[this.currency] === undefined) {
+                    const firstCurrency = Object.values(data)[0];
+                    if (firstCurrency) this.currency = firstCurrency.id;
+                }
+            }
+
+            this.gamesLoading = false;
         },
         changeLocale(locale) {
             this.locale = locale;

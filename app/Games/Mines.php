@@ -39,13 +39,37 @@ class Mines extends ExtendedGame implements MultiplierCanBeLimited {
         };
     }
 
+    public function process(Data $data) {
+        $mines = filter_var($data->game()->mines ?? null, FILTER_VALIDATE_INT);
+        if($mines === false || $mines < 2 || $mines > 24) return ['code' => -1, 'message' => 'Mines must be between 2 and 24'];
+        return parent::process($data);
+    }
+
     public function start(\App\Models\Game $game) {}
+
+    public function isValidTurnData(Game $game, array $turnData): bool {
+        if(!array_key_exists('id', $turnData)) return false;
+        $ids = is_array($turnData['id']) ? $turnData['id'] : [$turnData['id']];
+        $mines = intval($this->userData($game)['data']['mines'] ?? 0);
+        $history = array_map(fn($id) => $this->tileId($id), $game->data['history'] ?? []);
+        if(in_array(null, $history, true)) return false;
+        if($mines < 2 || $mines > 24 || count($ids) === 0 || count($ids) > 25 - $mines - count($history)) return false;
+
+        $seen = [];
+        foreach($ids as $id) {
+            $id = $this->tileId($id);
+            if($id === null || in_array($id, $history, true) || in_array($id, $seen, true)) return false;
+            $seen[] = $id;
+        }
+        return true;
+    }
 
     public function getModuleData(\App\Models\Game $game) {
         return floatval($this->userData($game)['data']['mines']);
     }
 
     public function turn(\App\Models\Game $game, array $turnData): Turn {
+        if(!$this->isValidTurnData($game, $turnData)) return new FailedTurn($game, []);
         if(is_array($turnData['id'])) {
             foreach ($turnData['id'] as $id) {
                 $state = $this->turn($game, ['id' => $id]);
@@ -55,23 +79,31 @@ class Mines extends ExtendedGame implements MultiplierCanBeLimited {
             return new ContinueGame($game, []);
         }
 
-        if($this->inHistory($game, $turnData['id'])) return new FailedTurn($game, []);
-        $this->pushHistory($game, $turnData['id']);
+        $id = $this->tileId($turnData['id']);
+        $this->pushHistory($game, $id);
 
-        if($this->getGrid($game, $game->server_seed)[intval($turnData['id'])] == 1) return new LoseGame($game, ['grid' => $this->getGrid($game, $game->server_seed)]);
+        $grid = $this->getGrid($game, $game->server_seed);
+        if($grid[$id] == 1) {
+            $this->pushData($game, ['grid' => $grid]);
+            return new LoseGame($game, ['grid' => $grid]);
+        }
 
         $game->update([
             'multiplier' => $this->data()[$this->userData($game)['data']['mines']][$this->getTurn($game)]
         ]);
 
-        $this->pushData($game, [strval($this->getTurn($game)) => intval($turnData['id'])]);
+        $this->pushData($game, [strval($this->getTurn($game)) => $id]);
 
-        if($this->getTurn($game) - 1 == (5 * 5) - 1 - intval($this->userData($game)['data']['mines'])) return new FinishGame($game, $this->getGrid($game, $game->server_seed));
+        if($this->getTurn($game) - 1 == (5 * 5) - 1 - intval($this->userData($game)['data']['mines'])) {
+            $this->pushData($game, ['grid' => $grid]);
+            return new FinishGame($game, $grid);
+        }
         return new ContinueGame($game, []);
     }
 
     public function data(): array {
-        if(!Cache::has('win5x:minesMultipliers:'.HouseEdgeModule::get($this, 0.99))) {
+        $cacheKey = 'win5x:minesMultipliers:v2:'.HouseEdgeModule::get($this, 0.99);
+        if(!Cache::has($cacheKey)) {
             $output = [];
 
             $factorial = function ($n) use (&$factorial) {
@@ -86,35 +118,48 @@ class Mines extends ExtendedGame implements MultiplierCanBeLimited {
                 return HouseEdgeModule::get($this, 0.99) * $nCr(25, $diamonds) / $nCr(25 - $mines, $diamonds);
             };
 
-            for ($mines = 0; $mines <= 24; $mines++) {
+            for ($mines = 2; $mines <= 24; $mines++) {
                 $grid = [];
                 for ($i = 1; $i <= 25 - $mines; $i++)
                     $grid[$i] = $calculateMultiplier($mines, $i);
                 $output[$mines] = $grid;
             }
 
-            Cache::forever('win5x:minesMultipliers:'.HouseEdgeModule::get($this, 0.99), json_encode($output));
+            Cache::forever($cacheKey, json_encode($output));
         }
-        return json_decode(Cache::get('win5x:minesMultipliers:'.HouseEdgeModule::get($this, 0.99)), true);
+        return json_decode(Cache::get($cacheKey), true);
     }
 
-    private function getGrid(Game $game, string $server_seed) {
-        $bombs = $this->userData($game)['data']['mines'];
+    private function getGrid(Game $game, string $server_seed): array {
+        $bombs = intval($this->userData($game)['data']['mines']);
+        if($bombs < 2 || $bombs > 24) throw new \UnexpectedValueException('Invalid Mines configuration');
         $bombs_grid = (new ProvablyFair($this, $server_seed))->result()->result()[$bombs - 2];
         $grid = [];
 
         for($i = 0; $i < 5 * 5; $i++) array_push($grid, 0);
         foreach($bombs_grid as $value) $grid[$value] = 1;
 
-        $this->pushData($game, ['grid' => $grid]);
         return $grid;
     }
 
     public function isLoss(ProvablyFairResult $result, \App\Models\Game $game, array $turnData): bool {
-        if($this->getTurn($game) > 1) for($i = 1; $i < $this->getTurn($game); $i++) {
-            if($this->getGrid($game, $result->server_seed())[$this->gameData($game)[strval($i)]] != 0) return false;
+        if(!$this->isValidTurnData($game, $turnData)) return true;
+        $grid = $this->getGrid($game, $result->server_seed());
+        foreach($game->data['history'] ?? [] as $id) {
+            $id = $this->tileId($id);
+            if($id === null || $grid[$id] !== 0) return false;
         }
-        return $this->getGrid($game, $result->server_seed())[intval($turnData['id'])] == 1;
+        foreach(is_array($turnData['id']) ? $turnData['id'] : [$turnData['id']] as $id) {
+            if($grid[$this->tileId($id)] === 1) return true;
+        }
+        return false;
+    }
+
+    private function tileId($id): ?int {
+        if(is_int($id)) return $id >= 0 && $id < 25 ? $id : null;
+        if(!is_string($id) || !preg_match('/^(0|[1-9][0-9]*)$/D', $id)) return null;
+        $id = intval($id);
+        return $id < 25 ? $id : null;
     }
 
     function result(ProvablyFairResult $result): array {

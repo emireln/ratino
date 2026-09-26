@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Currency\Currency;
+use Illuminate\Support\Facades\DB;
+use MongoDB\BSON\UTCDateTime;
 
 /**
  * Daily Vault Heist — one free spin per 24h per account. Tiered rewards
@@ -28,7 +30,7 @@ class HeistService {
         $claimed = $user->heist_claimed instanceof \Carbon\Carbon
             ? $user->heist_claimed
             : \Carbon\Carbon::parse($user->heist_claimed);
-        return $claimed->addHours(24);
+        return $claimed->copy()->addHours(24);
     }
 
     public static function canSpin(User $user): bool {
@@ -46,8 +48,6 @@ class HeistService {
      * Pick a weighted segment index, credit the reward, store claim time.
      */
     public static function spin(User $user): array {
-        if (!self::canSpin($user)) return ['code' => 1, 'message' => 'Already spun today'];
-
         $total = 0;
         foreach (self::SEGMENTS as $segment) $total += $segment['weight'];
         $roll = mt_rand() / mt_getrandmax() * $total;
@@ -61,7 +61,18 @@ class HeistService {
         }
 
         $segment = self::SEGMENTS[$index];
-        $user->update(['heist_claimed' => now()]);
+        $claimedAt = now();
+        $cutoff = $claimedAt->copy()->subHours(24);
+        $claim = DB::connection('mongodb')->getCollection($user->getTable())->updateOne(
+            ['_id' => $user->_id, '$or' => [
+                ['heist_claimed' => ['$exists' => false]],
+                ['heist_claimed' => null],
+                ['heist_claimed' => ['$lte' => new UTCDateTime($cutoff->getTimestamp() * 1000)]]
+            ]],
+            ['$set' => ['heist_claimed' => new UTCDateTime($claimedAt->getTimestamp() * 1000)]]
+        );
+        if($claim->getMatchedCount() === 0) return ['code' => 1, 'message' => 'Already spun today'];
+
         $user->balance(Currency::find('credits'))->add($segment['reward'], Transaction::builder()->message('Daily Vault Heist')->get());
 
         return ['index' => $index, 'reward' => $segment['reward']];

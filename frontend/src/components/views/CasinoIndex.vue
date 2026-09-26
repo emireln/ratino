@@ -23,15 +23,12 @@ export default {
         },
         categoryGames() {
             const cats = {};
-            const duplicates = [];
             const games = this.store.games || [];
 
             games.forEach((game) => {
                 if (!game || !game.category) return;
                 game.category.forEach((category) => {
                     if (category === 'evo-play') return;
-                    if (duplicates.includes(game.id)) return;
-                    duplicates.push(game.id);
                     if (!cats[category]) cats[category] = [game];
                     else cats[category].push(game);
                 });

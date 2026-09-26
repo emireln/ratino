@@ -38,7 +38,7 @@ class Data {
         return filter_var($this->data['quick'], FILTER_VALIDATE_BOOLEAN);
     }
 
-    public function bet(float $set = null): float {
+    public function bet(?float $set = null): float {
         if($set != null) $this->data['bet'] = $set;
         return floatval($this->data['bet']);
     }

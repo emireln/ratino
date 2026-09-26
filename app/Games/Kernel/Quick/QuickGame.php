@@ -24,7 +24,14 @@ abstract class QuickGame extends Game {
         $result = $this->start($data->guest() ? null : $data->user(), $data);
         $result_data = $result->toArray($data);
         if(!isset($result_data['code']) && !$data->guest()) {
-            $data->user()->balance(Currency::find($data->currency()))->demo($data->demo())->quiet()->subtract($data->bet(), Transaction::builder()->game($this->metadata()->id())->message('Game')->get());
+            $balance = $data->user()->balance(Currency::find($data->currency()))->demo($data->demo())->quiet();
+            if(!$balance->subtract($data->bet(), Transaction::builder()->game($this->metadata()->id())->message('Game')->get())) {
+                return ['code' => -4, 'message' => 'Not enough money'];
+            }
+            if($result->profit() > 0 && !$balance->add($result->profit(), Transaction::builder()->game($this->metadata()->id())->message('Win')->get())) {
+                $balance->add($data->bet(), Transaction::builder()->game($this->metadata()->id())->message('Bet refund')->get());
+                return ['code' => -1, 'message' => 'Could not settle game result'];
+            }
             \App\Services\VipService::onBet($data->user(), $data->bet(), $data->demo());
 
         } else return $result_data;

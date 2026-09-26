@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Currency\Currency;
+use Illuminate\Support\Facades\DB;
+use MongoDB\Operation\FindOneAndUpdate;
 
 /**
  * Daily & weekly community bounties. Verified automatically on every
@@ -52,7 +54,7 @@ class BountyService {
     ];
 
     public static function periodKey(string $type): string {
-        return $type === 'weekly' ? date('Y-W') : date('Y-m-d');
+        return $type === 'weekly' ? date('o-W') : date('Y-m-d');
     }
 
     public static function defs(string $type): array {
@@ -66,25 +68,49 @@ class BountyService {
     public static function check(User $user, $game): array {
         if ($user == null || $game == null || ($game->demo ?? false) || $game->status === 'cancelled') return [];
 
+        $hasStreakBounty = false;
+        foreach(array_merge(self::DAILY, self::WEEKLY) as $bounty) {
+            if($bounty['type'] === 'streak' && $bounty['game'] === $game->game) {
+                $hasStreakBounty = true;
+                break;
+            }
+        }
+        $gameStreak = $hasStreakBounty ? self::updateStreak($user, $game) : null;
+        $users = DB::connection('mongodb')->getCollection($user->getTable());
         $claimed = [];
         foreach (['daily', 'weekly'] as $type) {
             $period = self::periodKey($type);
             foreach (self::defs($type) as $bounty) {
                 $progress = self::progressFor($user, $period, $bounty['id']);
 
-                if ($progress['claimed'] || $progress['current'] >= $bounty['target']) continue;
+                if ($progress['claimed']) continue;
                 if (!self::qualifies($bounty, $game, $user)) continue;
 
-                $newValue = self::valueFor($bounty, $game, $user);
-                if ($newValue <= 0) continue;
+                $newValue = self::valueFor($bounty, $game, $gameStreak);
+                if ($newValue <= 0 && $bounty['type'] !== 'streak') continue;
 
-                $current = $progress['current'] + $newValue;
-                if ($current < $bounty['target']) {
-                    self::saveProgress($user, $period, $bounty['id'], ['current' => $current, 'claimed' => false]);
-                    continue;
-                }
+                $currentPath = 'bounties.' . $period . '.' . $bounty['id'] . '.current';
+                $claimedPath = 'bounties.' . $period . '.' . $bounty['id'] . '.claimed';
+                $operation = $bounty['type'] === 'streak'
+                    ? ['$set' => [$currentPath => $newValue]]
+                    : ['$inc' => [$currentPath => $newValue]];
+                $updated = $users->findOneAndUpdate(
+                    ['_id' => $user->_id, $claimedPath => ['$ne' => true]],
+                    $operation,
+                    ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER]
+                );
+                if($updated === null) continue;
 
-                self::saveProgress($user, $period, $bounty['id'], ['current' => $bounty['target'], 'claimed' => true]);
+                $bounties = json_decode(json_encode($updated->bounties ?? []), true) ?: [];
+                $current = floatval($bounties[$period][$bounty['id']]['current'] ?? 0);
+                if($current < $bounty['target']) continue;
+
+                $claim = $users->updateOne(
+                    ['_id' => $user->_id, $claimedPath => ['$ne' => true], $currentPath => ['$gte' => $bounty['target']]],
+                    ['$set' => [$currentPath => $bounty['target'], $claimedPath => true]]
+                );
+                if($claim->getMatchedCount() === 0) continue;
+
                 $user->balance(Currency::find('credits'))->add($bounty['reward'], Transaction::builder()->message('Bounty: ' . $bounty['title'])->get());
                 array_push($claimed, $bounty['id']);
             }
@@ -114,24 +140,14 @@ class BountyService {
         return false;
     }
 
-    private static function valueFor(array $bounty, $game, User $user): float {
+    private static function valueFor(array $bounty, $game, ?int $gameStreak): float {
         switch ($bounty['type']) {
             case 'wager':
                 return floatval($game->wager);
             case 'wins':
                 return $game->status === 'win' ? 1 : 0;
             case 'streak':
-                $streaks = $user->streaks ?? [];
-                $streak = intval($streaks[$bounty['game']] ?? 0);
-                if ($game->status === 'win') {
-                    $streak++;
-                    $streaks[$bounty['game']] = $streak;
-                    $user->update(['streaks' => $streaks]);
-                } else {
-                    $streaks[$bounty['game']] = 0;
-                    $user->update(['streaks' => $streaks]);
-                }
-                return $streak;
+                return $gameStreak ?? 0;
             default:
                 return floatval($game->multiplier);
         }
@@ -142,10 +158,19 @@ class BountyService {
         return $bounties[$period][$id] ?? ['current' => 0, 'claimed' => false];
     }
 
-    private static function saveProgress(User $user, string $period, string $id, array $value): void {
-        $bounties = $user->bounties ?? [];
-        $bounties[$period][$id] = $value;
-        $user->update(['bounties' => $bounties]);
+    private static function updateStreak(User $user, $game): int {
+        $path = 'streaks.' . $game->game;
+        $users = DB::connection('mongodb')->getCollection($user->getTable());
+        $updated = $users->findOneAndUpdate(
+            ['_id' => $user->_id],
+            $game->status === 'win' ? ['$inc' => [$path => 1]] : ['$set' => [$path => 0]],
+            ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER]
+        );
+        if($updated === null) return 0;
+
+        $streaks = json_decode(json_encode($updated->streaks ?? []), true) ?: [];
+        $user->setAttribute('streaks', $streaks);
+        return intval($streaks[$game->game] ?? 0);
     }
 
     public static function progress(User $user): array {

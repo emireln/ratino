@@ -7,9 +7,11 @@ use App\Events\BalanceModification;
 use App\Services\VipService;
 use App\Token\NewAccessToken;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use MongoDB\BSON\Decimal128;
+use MongoDB\Operation\FindOneAndUpdate;
 use MongoDB\Laravel\Auth\User as Authenticatable;
 
 class User extends Authenticatable {
@@ -126,42 +128,89 @@ class UserBalance {
         return $this->demo ? 'demo_credits' : 'credits';
     }
 
-    public function add(float $amount, array $transaction = null) {
-        $this->user->update([
-            $this->getColumn() => new Decimal128(strval($this->get() + $amount))
-        ]);
+    public function add(float $amount, ?array $transaction = null): bool {
+        return $this->addConditionally($amount, [], [], $transaction);
+    }
 
-        if ($this->quiet == false) event(new BalanceModification($this->user, $this->currency, 'add', $this->demo, $amount, 0));
+    public function addIfBelow(float $amount, float $limit, ?array $transaction = null): bool {
+        if(!is_finite($limit) || $limit < 0) return false;
+        return $this->addConditionally($amount, [
+            $this->getColumn() => ['$lt' => new Decimal128(number_format($limit, 2, '.', ''))]
+        ], [], $transaction);
+    }
+
+    public function addConditionally(float $amount, array $conditions, array $set, ?array $transaction = null): bool {
+        $amount = $this->normalizeAmount($amount);
+        if ($amount === null) return false;
+
+        $column = $this->getColumn();
+        $update = ['$inc' => [$column => new Decimal128(number_format($amount, 2, '.', ''))]];
+        if($set) $update['$set'] = $set;
+        $updated = DB::connection('mongodb')->getCollection($this->user->getTable())->findOneAndUpdate(
+            array_merge(['_id' => $this->user->_id], $conditions),
+            $update,
+            ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER]
+        );
+        if ($updated === null) return false;
+
+        $new = $this->decimalValue($updated->{$column} ?? 0);
+        $old = round($new - $amount, 2);
+        $this->user->setAttribute($column, $updated->{$column});
+
         Transaction::create([
             'user' => $this->user->_id,
             'demo' => $this->demo,
             'currency' => $this->currency->id(),
-            'new' => $this->get(),
-            'old' => $this->get() - $amount,
+            'new' => $new,
+            'old' => $old,
             'amount' => $amount,
             'quiet' => $this->quiet,
             'data' => $transaction ?? []
         ]);
+        if (!$this->quiet) event(new BalanceModification($this->user, $this->currency, 'add', $this->demo, $amount, 0));
+        return true;
     }
 
-    public function subtract(float $amount, array $transaction = null) {
-        $value = $this->get() - $amount;
-        if ($value < 0) $value = 0;
-        $this->user->update([
-            $this->getColumn() => new Decimal128(strval($value))
-        ]);
+    public function subtract(float $amount, ?array $transaction = null): bool {
+        $amount = $this->normalizeAmount($amount);
+        if ($amount === null) return false;
 
-        if ($this->quiet == false) event(new BalanceModification($this->user, $this->currency, 'subtract', $this->demo, $amount, 0));
+        $column = $this->getColumn();
+        $updated = DB::connection('mongodb')->getCollection($this->user->getTable())->findOneAndUpdate(
+            ['_id' => $this->user->_id, $column => ['$gte' => new Decimal128(number_format($amount, 2, '.', ''))]],
+            ['$inc' => [$column => new Decimal128(number_format(-$amount, 2, '.', ''))]],
+            ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER]
+        );
+        if ($updated === null) return false;
+
+        $new = $this->decimalValue($updated->{$column} ?? 0);
+        $old = round($new + $amount, 2);
+        $this->user->setAttribute($column, $updated->{$column});
+
         Transaction::create([
             'user' => $this->user->_id,
             'demo' => $this->demo,
             'currency' => $this->currency->id(),
-            'new' => $this->get(),
-            'old' => $this->get() + $amount,
+            'new' => $new,
+            'old' => $old,
             'amount' => -$amount,
             'quiet' => $this->quiet,
             'data' => $transaction ?? []
         ]);
+        if (!$this->quiet) event(new BalanceModification($this->user, $this->currency, 'subtract', $this->demo, $amount, 0));
+        return true;
+    }
+
+    private function normalizeAmount(float $amount): ?float {
+        if (!is_finite($amount) || $amount <= 0) return null;
+        $amount = round($amount, 2);
+        return $amount > 0 ? $amount : null;
+    }
+
+    private function decimalValue($value): float {
+        return $value instanceof Decimal128
+            ? floatval($value->jsonSerialize()['$numberDecimal'])
+            : floatval($value);
     }
 
 }

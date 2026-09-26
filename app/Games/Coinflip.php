@@ -37,6 +37,10 @@ class Coinflip extends ExtendedGame implements MultiplierCanBeLimited {
 
     public function start(\App\Models\Game $game) {}
 
+    public function isValidTurnData(\App\Models\Game $game, array $turnData): bool {
+        return in_array($turnData['color'] ?? null, ['blue', 'yellow'], true);
+    }
+
     public function turn(\App\Models\Game $game, array $turnData): Turn {
         $color = $turnData['color'];
         $generatedColor = (new ProvablyFair($this, $game->server_seed))->result()->result()[$this->getTurn($game) - 1];
@@ -54,9 +58,9 @@ class Coinflip extends ExtendedGame implements MultiplierCanBeLimited {
     }
 
     public function isLoss(ProvablyFairResult $result, \App\Models\Game $game, array $turnData): bool {
-        /*if($this->getTurn($game) > 1) for($i = 1; $i < $this->getTurn($game); $i++) {
-            if($result->result()[$i] !== $this->gameData($game)[strval($i)]) return false;
-        }*/
+        for($turn = 1; $turn <= $this->getTurn($game); $turn++) {
+            if($result->result()[$turn - 1] !== ($this->gameData($game)[strval($turn)] ?? null)) return false;
+        }
         return $result->result()[$this->getTurn($game)] !== $turnData['color'];
     }
 

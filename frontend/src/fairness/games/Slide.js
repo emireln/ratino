@@ -17,7 +17,7 @@ export default class Slide {
      */
     verify(seed_data) {
         const max_multiplier = 1000, house_edge = seed_data.houseEdge;
-        const float_point = max_multiplier / (Seed.extractFloat(seed_data) * max_multiplier) * house_edge;
+        const float_point = Math.min(max_multiplier, house_edge / Math.max(Seed.extractFloat(seed_data), 1 / 4294967296));
         return (Math.floor(float_point * 100) / 100).toFixed(2);
     }
 

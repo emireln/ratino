@@ -12,7 +12,7 @@ class ModuleSeeder {
     private ?\App\Models\Game $dbGame;
     private bool $demo;
 
-    public function __construct(Game $game, bool $demo, ?Data $data, \App\Models\Game $dbGame = null) {
+    public function __construct(Game $game, bool $demo, ?Data $data, ?\App\Models\Game $dbGame = null) {
         $this->game = $game;
         $this->data = $data;
         $this->demo = $demo;

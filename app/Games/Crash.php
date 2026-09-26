@@ -62,7 +62,7 @@ class Crash extends MultiplayerGame {
         }
 
         $this->state()->betting(true);
-        $this->state()->timestamp(now()->addSeconds(6)->timestamp);
+        $this->state()->timestamp(microtime(true) + 6);
 
         dispatch((new MultiplayerDisableBetAccepting($this))->delay(now()->addSeconds(6)));
 
@@ -73,15 +73,26 @@ class Crash extends MultiplayerGame {
     }
 
     public function onDispatchedFinish() {
+        $crashAt = (new ProvablyFair($this, $this->server_seed()))->result()->result()[0];
         $this->state()->history([
             'server_seed' => $this->server_seed(),
             'client_seed' => $this->client_seed(),
             'nonce' => $this->nonce(),
-            'multiplier' => $this->getCurrentMultiplier()
+            'multiplier' => $crashAt
         ]);
 
         foreach($this->getActiveGames() as $game) {
-            $game->update(['status' => 'lose']);
+            $settled = \App\Models\Game::where('_id', $game->_id)
+                ->where('status', 'in-progress')
+                ->where('settled', '!=', true)
+                ->update(['status' => 'lose', 'settled' => true, 'profit' => 0, 'multiplier' => 0]);
+            if(!$settled) continue;
+
+            $game->refresh();
+            $user = User::where('_id', $game->user)->first();
+            if($user == null) continue;
+            app(\App\Services\SupabaseService::class)->recordGame($game, $user);
+            \App\Services\BountyService::check($user, $game);
         }
     }
 
@@ -94,26 +105,37 @@ class Crash extends MultiplayerGame {
     }
 
     protected function handleCancellation(\App\Models\Game $game) {
-        if($game->server_seed !== $this->state()->serverSeed()) return ['error' => [1, 'This Crash game is invalid']];
+        if($game->server_seed !== $this->state()->serverSeed() || $game->status !== 'in-progress') return ['error' => [1, 'This Crash game is invalid']];
+
+        $user = User::where('_id', $game->user)->first();
+        if($user == null) return ['error' => [1, 'This Crash game has no player']];
 
         $multiplier = $this->getCurrentMultiplier();
+        $crashAt = (new ProvablyFair($this, $game->server_seed))->result()->result()[0];
+        if($multiplier >= $crashAt) {
+            $game->update(['status' => 'lose', 'profit' => 0, 'multiplier' => 0]);
+            app(\App\Services\SupabaseService::class)->recordGame($game, $user);
+            \App\Services\BountyService::check($user, $game);
+            return;
+        }
         if($multiplier > 1000) $multiplier = 1;
 
         $game->update([
             'status' => 'win',
-            'profit' => $game->wager * $multiplier,
+            'profit' => round($game->wager * $multiplier, 2),
             'multiplier' => $multiplier
         ]);
-        User::where('_id', $game->user)->first()->balance(Currency::find($game->currency))->demo($game->demo)
+        $user->balance(Currency::find($game->currency))->demo($game->demo)
             ->add($game->profit, Transaction::builder()->message('Crash (Take)')->game($this->metadata()->id())->get());
-        event(new \App\Events\MultiplayerBetCancellation($game, User::where('_id', $game->user)->first()));
+        event(new \App\Events\MultiplayerBetCancellation($game, $user));
     }
 
     private function getCurrentMultiplier() {
         $start_timestamp = $this->state()->timestamp();
         if($start_timestamp < 0) return 1;
 
-        $diffS = now()->timestamp - $start_timestamp;
+        $diffS = microtime(true) - $start_timestamp;
+        if($diffS <= 0) return 1;
         $timeInMilliseconds = 0;
         $simulation = 1; $suS =  0;
 
@@ -125,12 +147,9 @@ class Crash extends MultiplayerGame {
                 $timeInMilliseconds += 4000 / 15 / 3;
             }
             if($timeInMilliseconds >= ($diffS * 1000) || $simulation > 1000) {
-                if($simulation > 1000) $simulation = 1;
-                break;
+                return min($simulation, 1000);
             }
         }
-
-        return HouseEdgeModule::apply($this, $simulation);
     }
 
     public function isLoss(ProvablyFairResult $result, \App\Models\Game $game, array $turnData): bool {
@@ -139,7 +158,7 @@ class Crash extends MultiplayerGame {
 
     function result(ProvablyFairResult $result): array {
         $max_multiplier = 1000; $house_edge = HouseEdgeModule::get($this, 0.99);
-        $float_point = $max_multiplier / ($result->extractFloat() * $max_multiplier) * $house_edge;
+        $float_point = min($max_multiplier, $house_edge / max($result->extractFloat(), 1 / 4294967296));
         return [floor($float_point * 100) / 100];
     }
 

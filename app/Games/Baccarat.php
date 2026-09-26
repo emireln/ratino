@@ -38,7 +38,7 @@ class Baccarat extends MultiplayerGame {
     }
 
     private function getScore($hand) {
-        return ($hand[0]['baccaratValue'] + $hand[1]['baccaratValue']) % 10;
+        return array_sum(array_column($hand, 'baccaratValue')) % 10;
     }
 
     private function getResult(array $result) {
@@ -140,34 +140,22 @@ class Baccarat extends MultiplayerGame {
         $this->state()->data($result);
 
         foreach($this->getActiveGames() as $game) {
-            $multiplier = 0;
-            $profit = 0;
+            $payout = 0.0;
 
             foreach((array) $this->userData($game)['data']['bet'] as $key => $value) {
-                if($value == 0) continue;
+                $value = (float) $value;
+                if($value <= 0) continue;
 
-                if($result['status'] === 'draw' && $key === 'draw') {
-                    $multiplier += HouseEdgeModule::apply($this, 8);
-                    $profit += $value * HouseEdgeModule::apply($this, 8);
-                } else if($result['status'] === 'player' && $key === 'player') {
-                    $multiplier += HouseEdgeModule::apply($this, 2);
-                    $profit += $value * HouseEdgeModule::apply($this, 2);
-                } else if($result['status'] === 'banker' && $key === 'banker') {
-                    $multiplier += HouseEdgeModule::apply($this, 1.95);
-                    $profit += $value * HouseEdgeModule::apply($this, 1.95);
-                }
+                if($key === 'player' && $result['status'] === 'player') $payout += $value * HouseEdgeModule::apply($this, 2);
+                else if($key === 'banker' && $result['status'] === 'banker') $payout += $value * HouseEdgeModule::apply($this, 1.95);
+                else if($key === 'draw' && $result['status'] === 'draw') $payout += $value * HouseEdgeModule::apply($this, 8);
+                else if($result['status'] === 'draw' && in_array($key, ['player', 'banker'], true)) $payout += $value;
 
-                if(($key === 'pair_player' && (isset($result['player'][2]) ? ($result['player'][2]['baccaratValue'] == $result['player'][1]['baccaratValue']
-                            || $result['player'][0]['baccaratValue'] == $result['player'][1]['baccaratValue'] || $result['player'][0] == $result['player'][2]['baccaratValue'])
-                            : $result['player'][0]['baccaratValue'] == $result['player'][1]['baccaratValue']))
-                    || ($key === 'pair_banker' && (isset($result['dealer'][2]) ? ($result['dealer'][2]['baccaratValue'] == $result['dealer'][1]['baccaratValue']
-                            || $result['dealer'][0]['baccaratValue'] == $result['dealer'][1]['baccaratValue'] || $result['dealer'][0] == $result['dealer'][2]['baccaratValue'])
-                            : $result['dealer'][0]['baccaratValue'] == $result['dealer'][1]['baccaratValue']))) {
-                    $multiplier += HouseEdgeModule::apply($this, 11);
-                    $profit += $value * HouseEdgeModule::apply($this, 11);
-                }
+                $hand = $key === 'pair_player' ? $result['player'] : ($key === 'pair_banker' ? $result['dealer'] : null);
+                if($hand !== null && $this->hasPair($hand)) $payout += $value * HouseEdgeModule::apply($this, 11);
             }
 
+            $multiplier = $game->wager > 0 ? round($payout / $game->wager, 8) : 0;
             $this->win($game, $multiplier, ((count($result['player']) + count($result['dealer'])) * 900) + 500 + 300);
         }
     }
@@ -196,9 +184,9 @@ class Baccarat extends MultiplayerGame {
             8 => ['type' => 'spades', 'value' => '8', 'baccaratValue' => 8],
             9 => ['type' => 'spades', 'value' => '9', 'baccaratValue' => 9],
             10 => ['type' => 'spades', 'value' => '10', 'baccaratValue' => 10],
-            11 => ['type' => 'spades', 'value' => 'J', 'baccaratValue' => 11],
-            12 => ['type' => 'spades', 'value' => 'Q', 'baccaratValue' => 12],
-            13 => ['type' => 'spades', 'value' => 'K', 'baccaratValue' => 13],
+            11 => ['type' => 'spades', 'value' => 'J', 'baccaratValue' => 0],
+            12 => ['type' => 'spades', 'value' => 'Q', 'baccaratValue' => 0],
+            13 => ['type' => 'spades', 'value' => 'K', 'baccaratValue' => 0],
             14 => ['type' => 'hearts', 'value' => 'A', 'baccaratValue' => 1],
             15 => ['type' => 'hearts', 'value' => '2', 'baccaratValue' => 2],
             16 => ['type' => 'hearts', 'value' => '3', 'baccaratValue' => 3],
@@ -209,9 +197,9 @@ class Baccarat extends MultiplayerGame {
             21 => ['type' => 'hearts', 'value' => '8', 'baccaratValue' => 8],
             22 => ['type' => 'hearts', 'value' => '9', 'baccaratValue' => 9],
             23 => ['type' => 'hearts', 'value' => '10', 'baccaratValue' => 10],
-            24 => ['type' => 'hearts', 'value' => 'J', 'baccaratValue' => 11],
-            25 => ['type' => 'hearts', 'value' => 'Q', 'baccaratValue' => 12],
-            26 => ['type' => 'hearts', 'value' => 'K', 'baccaratValue' => 13],
+            24 => ['type' => 'hearts', 'value' => 'J', 'baccaratValue' => 0],
+            25 => ['type' => 'hearts', 'value' => 'Q', 'baccaratValue' => 0],
+            26 => ['type' => 'hearts', 'value' => 'K', 'baccaratValue' => 0],
             27 => ['type' => 'clubs', 'value' => 'A', 'baccaratValue' => 1],
             28 => ['type' => 'clubs', 'value' => '2', 'baccaratValue' => 2],
             29 => ['type' => 'clubs', 'value' => '3', 'baccaratValue' => 3],
@@ -222,9 +210,9 @@ class Baccarat extends MultiplayerGame {
             34 => ['type' => 'clubs', 'value' => '8', 'baccaratValue' => 8],
             35 => ['type' => 'clubs', 'value' => '9', 'baccaratValue' => 9],
             36 => ['type' => 'clubs', 'value' => '10', 'baccaratValue' => 10],
-            37 => ['type' => 'clubs', 'value' => 'J', 'baccaratValue' => 11],
-            38 => ['type' => 'clubs', 'value' => 'Q', 'baccaratValue' => 12],
-            39 => ['type' => 'clubs', 'value' => 'K', 'baccaratValue' => 13],
+            37 => ['type' => 'clubs', 'value' => 'J', 'baccaratValue' => 0],
+            38 => ['type' => 'clubs', 'value' => 'Q', 'baccaratValue' => 0],
+            39 => ['type' => 'clubs', 'value' => 'K', 'baccaratValue' => 0],
             40 => ['type' => 'diamonds', 'value' => 'A', 'baccaratValue' => 1],
             41 => ['type' => 'diamonds', 'value' => '2', 'baccaratValue' => 2],
             42 => ['type' => 'diamonds', 'value' => '3', 'baccaratValue' => 3],
@@ -235,16 +223,32 @@ class Baccarat extends MultiplayerGame {
             47 => ['type' => 'diamonds', 'value' => '8', 'baccaratValue' => 8],
             48 => ['type' => 'diamonds', 'value' => '9', 'baccaratValue' => 9],
             49 => ['type' => 'diamonds', 'value' => '10', 'baccaratValue' => 10],
-            50 => ['type' => 'diamonds', 'value' => 'J', 'baccaratValue' => 11],
-            51 => ['type' => 'diamonds', 'value' => 'Q', 'baccaratValue' => 12],
-            52 => ['type' => 'diamonds', 'value' => 'K', 'baccaratValue' => 13]
+            50 => ['type' => 'diamonds', 'value' => 'J', 'baccaratValue' => 0],
+            51 => ['type' => 'diamonds', 'value' => 'Q', 'baccaratValue' => 0],
+            52 => ['type' => 'diamonds', 'value' => 'K', 'baccaratValue' => 0]
         ];
     }
 
+    private function hasPair(array $hand): bool {
+        return isset($hand[0], $hand[1]) && $hand[0]['value'] === $hand[1]['value'];
+    }
+
+    public function usesCustomWagerCalculations() {
+        return true;
+    }
+
     public function customWagerCalculation(Data $data): ?bool {
-        $totalBet = 0;
-        foreach((array) $data->game()->bet as $key => $value) $totalBet += $value;
-        if($totalBet < Currency::find($data->currency())->minBet() || ($data->user() != null && $data->user()->balance(Currency::find($data->currency()))->demo($data->demo())->get() < $totalBet)) return false;
+        $bets = (array) ($data->game()->bet ?? []);
+        $keys = ['player', 'banker', 'draw', 'pair_player', 'pair_banker'];
+        $totalBet = 0.0;
+        foreach($bets as $key => $value) {
+            if(!in_array($key, $keys, true) || !is_numeric($value)) return false;
+            $amount = (float) $value;
+            if(!is_finite($amount) || $amount < 0 || abs(round($amount, 2) - $amount) > 0.000001) return false;
+            $totalBet += $amount;
+        }
+        $totalBet = round($totalBet, 2);
+        if($totalBet < Currency::find($data->currency())->minBet()) return false;
         $data->bet($totalBet);
         return true;
     }

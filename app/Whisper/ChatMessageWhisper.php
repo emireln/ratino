@@ -46,8 +46,8 @@ class ChatMessageWhisper extends Whisper {
         if (count($parts) < 2) return ['code' => 4, 'message' => 'Usage: /tip name amount'];
 
         $name = ltrim($parts[0], '@');
-        $amount = floatval($parts[1]);
-        if ($amount <= 0) return ['code' => 4, 'message' => 'Usage: /tip name amount'];
+        $amount = round(floatval($parts[1]), 2);
+        if (!is_finite($amount) || $amount <= 0) return ['code' => 4, 'message' => 'Usage: /tip name amount'];
 
         $target = User::where('name', $name)->first();
         if ($target == null || $target->_id === $this->user->_id) return ['code' => 5, 'message' => 'Unknown user'];
@@ -56,8 +56,13 @@ class ChatMessageWhisper extends Whisper {
         $balance = $this->user->balance($currency)->get();
         if ($balance < $amount) return ['code' => 6, 'message' => 'Not enough balance'];
 
-        $this->user->balance($currency)->subtract($amount, Transaction::builder()->message('Tip to ' . $target->name)->get());
-        $target->balance($currency)->add($amount, Transaction::builder()->message('Tip from ' . $this->user->name)->get());
+        if(!$this->user->balance($currency)->subtract($amount, Transaction::builder()->message('Tip to ' . $target->name)->get())) {
+            return ['code' => 6, 'message' => 'Not enough balance'];
+        }
+        if(!$target->balance($currency)->add($amount, Transaction::builder()->message('Tip from ' . $this->user->name)->get())) {
+            $this->user->balance($currency)->add($amount, Transaction::builder()->message('Tip refund')->get());
+            return ['code' => 7, 'message' => 'Could not complete tip'];
+        }
 
         Chat::create([
             'user' => [

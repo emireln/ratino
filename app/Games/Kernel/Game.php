@@ -50,6 +50,14 @@ abstract class Game {
         return false;
     }
 
+    public function customWagerCalculation(Data $data): ?bool {
+        return null;
+    }
+
+    public function isValidPlayData(Data $data): bool {
+        return true;
+    }
+
     public function getBotData(): array {
         return [];
     }

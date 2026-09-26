@@ -17,6 +17,13 @@ use Illuminate\Support\Facades\Log;
 
 class Stairs extends ExtendedGame implements MultiplierCanBeLimited {
 
+    private array $rowSizes = [20, 19, 19, 18, 19, 15, 17, 13, 12, 19, 10, 9, 8];
+
+    public function isValidPlayData(Data $data): bool {
+        $mines = $data->game()->mines ?? null;
+        return is_numeric($mines) && (float) $mines === (float) intval($mines) && intval($mines) >= 1 && intval($mines) <= 7;
+    }
+
     function metadata(): Metadata {
         return new class extends Metadata {
             function id(): string {
@@ -46,8 +53,7 @@ class Stairs extends ExtendedGame implements MultiplierCanBeLimited {
     }
 
     public function turn(\App\Models\Game $game, array $turnData): Turn {
-        $rows = [20, 19, 19, 18, 19, 15, 17, 13, 12, 19, 10, 9, 8];
-        $row = $rows[$this->getTurn($game) - 1];
+        $row = $this->rowSizes[$this->getTurn($game) - 1];
         if(intval($turnData['cell']) >= $row || intval($turnData['cell']) < 0) return new FailedTurn($game, []);
 
         $this->pushHistory($game, intval($turnData['cell']));
@@ -65,11 +71,19 @@ class Stairs extends ExtendedGame implements MultiplierCanBeLimited {
         return new ContinueGame($game, ['death' => $row]);
     }
 
+    public function isValidTurnData(\App\Models\Game $game, array $turnData): bool {
+        $cell = $turnData['cell'] ?? null;
+        $rowIndex = $this->getTurn($game) - 1;
+        return isset($this->rowSizes[$rowIndex]) && is_numeric($cell)
+            && (float) $cell === (float) intval($cell) && intval($cell) >= 0 && intval($cell) < $this->rowSizes[$rowIndex];
+    }
+
     public function isLoss(ProvablyFairResult $result, \App\Models\Game $game, array $turnData): bool {
-        /*if($this->getTurn($game) > 1) for($i = 1; $i < $this->getTurn($game); $i++) {
-            if(in_array($this->gameData($game)[strval($i)], (new ProvablyFair($this, $result->server_seed()))->result()->result()[$this->gameData($game)['mines'] - 1][$i - 1])) return false;
-        }*/
-        return in_array(intval($turnData['cell']), (new ProvablyFair($this, $result->server_seed()))->result()->result()[$this->gameData($game)['mines'] - 1][$this->getTurn($game)]);
+        $grid = (new ProvablyFair($this, $result->server_seed()))->result()->result()[$this->gameData($game)['mines'] - 1];
+        foreach($game->data['history'] ?? [] as $row => $cell) {
+            if(in_array(intval($cell), $grid[$row])) return false;
+        }
+        return in_array(intval($turnData['cell']), $grid[$this->getTurn($game)]);
     }
 
     function result(ProvablyFairResult $result): array {

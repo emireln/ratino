@@ -147,7 +147,7 @@ class MultiplayerGameStateBuilder
         return $this->state->can_bet;
     }
 
-    public function timestamp($set = null): int
+    public function timestamp($set = null): float
     {
         if ($set != null) {
             $this->state->update(['timestamp' => $set]);
