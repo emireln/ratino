@@ -1,6 +1,6 @@
 # RATINO
 
-Modern rebuild of the RATINO casino platform. Same games, same logic, same API contract — new stack.
+Modern rebuild of the RATINO (old project) casino platform.
 
 | Layer | Stack |
 |---|---|---|
