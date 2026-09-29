@@ -82,4 +82,3 @@ Multiplayer chains: `php artisan game:chain all`. Rain drops: scheduled (`win5x:
 ## Notes
 
 - Optional Supabase auth + game-round ledger: set SUPABASE_* env vars (schema in database/supabase/schema.sql).
-- 
