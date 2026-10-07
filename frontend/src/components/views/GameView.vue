@@ -46,6 +46,7 @@ import GameSidebar from './sidebar/GameSidebar.vue';
 import FastReactions from '../ui/FastReactions.vue';
 import { useAppStore } from '../../stores/app';
 import { useModal } from '../../composables/useModal';
+import { multiplayerChannel } from '../../lib/echo';
 import bus from '../../lib/bus';
 
 const games = {
@@ -94,6 +95,9 @@ export default {
         openAuth(type) {
             useModal().open('Auth', { type });
         },
+        ensureMultiplayer(id) {
+            try { if (id) multiplayerChannel(id); } catch (e) {}
+        },
         wire(ref) {
             window.$gameRef = ref;
 
@@ -126,6 +130,7 @@ export default {
     watch: {
         '$route.params.id'(newId) {
             if (newId) {
+                this.ensureMultiplayer(newId);
                 this.updateGameInstance((i) => {
                     i.playTimeout = false;
                     i.bettingType = 'manual';
@@ -151,6 +156,7 @@ export default {
 
         this.awaitRef();
 
+        this.ensureMultiplayer(this.$route.params.id);
         this.forwardMultiplayer('event:multiplayerBettingStateChange', (e) => e.game, 'MultiplayerBettingStateChange');
         this.forwardMultiplayer('event:multiplayerTimerStart', (e) => e.game, 'MultiplayerTimerStart');
         this.forwardMultiplayer('event:multiplayerGameFinished', (e) => e.game, 'MultiplayerGameFinished');
