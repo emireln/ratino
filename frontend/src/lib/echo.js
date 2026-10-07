@@ -3,11 +3,20 @@ import Pusher from 'pusher-js';
 import bus from './bus';
 
 let echo = null;
+let echoToken = null;
 
 export function installEcho() {
-    window.Pusher = Pusher;
-
     const token = localStorage.getItem('ratino_token');
+    if (echo && token === echoToken) return echo;
+    if (echo) {
+        try { echo.disconnect(); } catch (e) {}
+        echo = null;
+        window.__ratinoPrivate = false;
+        window.__ratinoLive = false;
+        window.__ratinoMulti = {};
+    }
+
+    window.Pusher = Pusher;
 
     echo = new Echo({
         broadcaster: 'reverb',
@@ -23,10 +32,13 @@ export function installEcho() {
     });
 
     window.Echo = echo;
+    echoToken = token;
     return echo;
 }
 
 export function connectRealtime(userId) {
+    const token = localStorage.getItem('ratino_token');
+    if (!echo || token !== echoToken) installEcho();
     if (!echo || !userId) return;
 
     // private user channel for balance and social invites
