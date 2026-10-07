@@ -1,5 +1,6 @@
 <?php namespace App\Games\Kernel\Quick;
 
+use App\Currency\Currency;
 use App\Games\Kernel\Data;
 use App\Games\Kernel\GameResult;
 use App\Games\Kernel\ProvablyFair;
