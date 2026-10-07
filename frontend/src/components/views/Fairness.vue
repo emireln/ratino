@@ -29,11 +29,6 @@ export default {
     },
     methods: {
         verify() {
-            const rounds = [];
-            for (let i = 0; i < 3; i++) {
-                const hash = CryptoJS ? null : null;
-                rounds.push(hash);
-            }
             // uses webcrypto HMAC
             const floats = [];
             (async () => {
