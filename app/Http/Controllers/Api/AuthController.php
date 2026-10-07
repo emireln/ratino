@@ -70,8 +70,8 @@ class AuthController extends Controller {
     public function register(Request $request) {
         $request->validate([
             'email' => ['required', 'email'],
-            'name' => ['required', 'string', 'min:3', 'max:32'],
-            'password' => ['required', 'string', 'min:4']
+            'name' => ['required', 'string', 'min:3', 'max:32', 'regex:/^[a-zA-Z0-9_-]{3,32}$/u'],
+            'password' => ['required', 'string', 'min:8']
         ]);
 
         if (User::where('email', $request->email)->exists()) {
@@ -143,7 +143,7 @@ class AuthController extends Controller {
         // 2. Custom Avatar File Upload
         if ($request->hasFile('avatar_file')) {
             $request->validate([
-                'avatar_file' => ['required', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:5120']
+                'avatar_file' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120']
             ]);
 
             $file = $request->file('avatar_file');
