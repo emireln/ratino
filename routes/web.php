@@ -18,5 +18,7 @@ Route::get('/avatar/{hash}', function ($hash) {
 
 Route::get('/{any?}', function () {
     // SPA shell built by the frontend/ Vite app (public/index.html)
-    return response(file_get_contents(public_path('index.html')))->header('Content-Type', 'text/html');
+    $index = public_path('index.html');
+    if (!is_file($index)) abort(404, 'Frontend build missing. Run: cd frontend && npm run build');
+    return response(file_get_contents($index))->header('Content-Type', 'text/html');
 })->where('any', '.*');
