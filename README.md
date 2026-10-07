@@ -4,7 +4,7 @@ Modern rebuild of the RATINO (old project) casino platform.
 
 | Layer | Stack |
 |---|---|---|
-| Backend | Laravel 7 / PHP 7.4 (EOL) | **Laravel 12 / PHP 8.5** |
+| Backend | Laravel 7 / PHP 7.4 (EOL) | **Laravel 13 / PHP 8.3+** |
 | Database driver | jenssegers/mongodb (unmaintained) | **mongodb/laravel-mongodb 5** |
 | Frontend | Vue 2 + Vuex + webpack 4 (EOL) | **Vue 3 + Pinia + Vite 6** |
 | Realtime | laravel-echo-server + Redis polling | **Laravel Reverb** (native WebSocket, presence channels) |

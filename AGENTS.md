@@ -1,6 +1,6 @@
 # AGENTS.md — RATINO
 
-Casino platform for friends. Laravel 12 + PHP 8.5 backend, MongoDB, Vue 3 + Pinia + Vite frontend, Laravel Reverb realtime. Single virtual currency: CHIPS. No banking, no crypto, no payments.
+Casino platform for friends. Laravel 13 + PHP 8.3+ backend, MongoDB, Vue 3 + Pinia + Vite frontend, Laravel Reverb realtime. Single virtual currency: CHIPS. No banking, no crypto, no payments.
 
 ## Talk (caveman)
 
@@ -53,7 +53,7 @@ Queue uses sqlite (DB_QUEUE_CONNECTION=sqlite); app data lives in MongoDB.
 ## Repo map
 
 - `app/Models/` — User (mongo + Sanctum tokens via custom PersonalAccessToken), Game, Chat, Room, Transaction, Settings, Modules, DisabledGame, MultiplayerGameState.
-- `app/Games/Kernel/` — provably-fair engine. `Game` abstract: `metadata()`, `process(Data)`, `result(ProvablyFairResult)`. Subtypes: QuickGame, ExtendedGame, MultiplayerGame. `Game::list()` registers the 18 games.
+- `app/Games/Kernel/` — provably-fair engine. `Game` abstract: `metadata()`, `process(Data)`, `result(ProvablyFairResult)`. Subtypes: `Quick/QuickGame`, `Extended/ExtendedGame`, `Multiplayer/MultiplayerGame`. `Game::list()` registers the 18 games.
 - `app/Whisper/` — POST /api/whisper handlers (Play, Turn, Finish, GameData, RestoreData, Vip, ChatMessage, ChatHistory, Rain, Heist, Bounties, Leaderboard, LiveFeed, Room, Wallet, Friend). Registered in `Whisper::list()`.
 - `app/Services/` — VipService, BountyService, HeistService, SupabaseService (optional auth + game_rounds ledger).
 - `app/Events/` — Reverb broadcasts: ChatMessage (presence `chat.{channel}`), LiveBet (`live`), BalanceModification (private `user.{id}`), SocialNotification (private `user.{id}`), FastReaction (`live`/`chat`), Multiplayer* (`multiplayer.{game}`).
@@ -75,7 +75,7 @@ Queue uses sqlite (DB_QUEUE_CONNECTION=sqlite); app data lives in MongoDB.
 
 ## Repo rules
 
-- PHP 8.5 / Laravel 12 idioms. No PHP 7-era workarounds unless required by a copied kernel file.
+- PHP 8.3+ / Laravel 13 idioms. No PHP 7-era workarounds unless required by a copied kernel file.
 - MongoDB via mongodb/laravel-mongodb 5 — Eloquent models with `$connection = 'mongodb'`.
 - No new composer/npm deps without reason.
 - Seed management UI: intentionally absent. Server seeds fixed per account.
