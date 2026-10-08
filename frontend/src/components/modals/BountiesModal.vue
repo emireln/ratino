@@ -101,6 +101,12 @@ export default {
             gap: 10px;
             margin-bottom: 10px;
 
+            @media(max-width: 480px) {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
             .bounty-title {
                 display: flex;
                 align-items: center;
