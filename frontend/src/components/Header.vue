@@ -360,4 +360,26 @@ header {
         }
     }
 }
+
+@media(max-width: 400px) {
+    header {
+        .header-container {
+            .feature-buttons {
+                i:nth-child(8) {
+                    display: none; /* Keep Rooms, Friends, Chat on very small screens */
+                }
+            }
+
+            .header-center .wallet {
+                padding: 4px 8px;
+                max-width: 38vw;
+                overflow: hidden;
+
+                .wallet-add-badge {
+                    display: none;
+                }
+            }
+        }
+    }
+}
 </style>
