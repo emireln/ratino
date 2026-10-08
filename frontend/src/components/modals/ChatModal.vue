@@ -134,8 +134,9 @@ export default {
             });
         },
         joinRoom() {
-            if (!this.roomCode.length) return;
-            whisper('Room', { action: 'join', code: this.roomCode }).then((room) => {
+            const code = (this.roomCode || '').trim().toUpperCase();
+            if (!code.length) return;
+            whisper('Room', { action: 'join', code }).then((room) => {
                 this.roomCode = '';
                 this.showRoomForm = false;
                 this.loadRooms();
@@ -167,6 +168,8 @@ export default {
             });
         },
         onChatMessage(e) {
+            if (!e) return;
+            if (e.channel && e.channel !== this.channel) return;
             this.messages.push(e);
             if (this.messages.length > 80) this.messages.shift();
             this.scroll();
