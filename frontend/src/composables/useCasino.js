@@ -143,7 +143,10 @@ export function useCasino() {
                         switch (error) {
                             case 0: this.sendTurn(data, callback, finishedCallback); break;
                             case 1: toast.error('Invalid game id'); break;
-                            case 2: if (finishedCallback != null) finishedCallback(); break;
+                            case 2:
+                                this.updateGameInstance((i) => i.playTimeout = false);
+                                if (finishedCallback != null) finishedCallback();
+                                break;
                             case 3: toast.error('Invalid API operation'); break;
                         }
                     });

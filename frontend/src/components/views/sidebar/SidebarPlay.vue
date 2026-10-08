@@ -1,7 +1,7 @@
 <template>
     <div class="sidebar-play">
         <button type="button" class="play-button" @click="play">
-            {{ isExtendedGameStarted() ? (gameInstance.game.canBeFinished !== false ? $t('general.take') : $t('general.play')) : $t('general.play') }}
+            {{ isExtendedGameStarted() ? $t('general.take') : $t('general.play') }}
         </button>
     </div>
 </template>
@@ -58,7 +58,10 @@ export default {
                 }
             }).catch((code) => {
                 if (code === -4) this.$toast.error('Not enough money');
-                else if (code === -2) this.$toast.error('Login to play');
+                else if (code === -9 || code === -2) this.$toast.error('Login to play');
+                else if (code === -8) this.$toast.error('Finish your current round first');
+                else if (code === -5) this.$toast.error('Game is disabled');
+                else if (code !== 0) this.$toast.error('Bet rejected, try again');
             });
         }
     }
