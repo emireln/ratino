@@ -43,9 +43,14 @@
                 </div>
             </div>
 
-            <div class="live-feed-empty" v-if="!filteredBets.length">
+            <div class="live-feed-empty" v-if="bets === null">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <div>Loading live bets…</div>
+            </div>
+            <div class="live-feed-empty" v-else-if="!filteredBets.length">
                 <i class="fas fa-satellite-dish"></i>
-                <div>No bets found in this filter yet. Action updates in real time!</div>
+                <div v-if="filter === 'friends' && !store.user">Log in to see bets from your friends.</div>
+                <div v-else>No bets found in this filter yet. Action updates in real time!</div>
             </div>
         </div>
     </div>
@@ -59,7 +64,7 @@ import bus from '../lib/bus';
 export default {
     data() {
         return {
-            bets: [],
+            bets: null,
             filter: 'all',
             friends: []
         };
@@ -88,7 +93,7 @@ export default {
     },
     methods: {
         fetch() {
-            whisper('LiveFeed').then((bets) => this.bets = Array.isArray(bets) ? bets : []).catch(() => {});
+            whisper('LiveFeed').then((bets) => this.bets = Array.isArray(bets) ? bets : []).catch(() => { this.bets = []; });
             whisper('Friend', { action: 'list' }).then((res) => {
                 this.friends = (res && res.friends) || [];
             }).catch(() => {});
@@ -109,6 +114,7 @@ export default {
         },
         onLiveBet(e) {
             if (!e) return;
+            if (!Array.isArray(this.bets)) this.bets = [];
             if (e._id && this.bets.some((b) => b && b._id === e._id)) return;
             this.bets.unshift(e);
             if (this.bets.length > 25) this.bets.pop();
