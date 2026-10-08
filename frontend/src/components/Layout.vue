@@ -71,7 +71,7 @@ export default {
     padding: 20px 24px 40px;
     flex: 1;
     width: 100%;
-    max-width: 1320px;
+    max-width: 1228px;
     margin: 0 auto;
 }
 
