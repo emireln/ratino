@@ -57,6 +57,11 @@ input, select, textarea {
         outline: none;
         box-shadow: none;
     }
+
+    &:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+    }
 }
 
 .btn-primary, button.btn-primary {
@@ -65,8 +70,8 @@ input, select, textarea {
     color: #fff !important;
 
     &:hover:not(:disabled) {
-        background: darken($accent, 6%) !important;
-        border-color: darken($accent, 6%) !important;
+        background: #ff2a55 !important;
+        border-color: #ff2a55 !important;
         color: #fff !important;
     }
 }
