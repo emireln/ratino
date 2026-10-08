@@ -109,6 +109,7 @@
                 $('.wheel-container').find('.wheel').wheel('onComplete', () => {
                     this.updateGameInstance((i) => i.playTimeout = false);
 
+                    if(!this.latestGame || !this.latestGame.game) return;
                     if(!$('.wheel-container').parent().hasClass('overview-render-target')) {
                         this.resultPopup(this.latestGame.game);
                         this.$bus.emit('wheel:history:addEntry', { html: `<div class="wheel-history-entry wheel-history-${this.latestGame.game.data.color}"></div>` });
