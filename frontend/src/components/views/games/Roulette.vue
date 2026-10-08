@@ -238,6 +238,7 @@
         },
         beforeUnmount() {
             if(typeof this.unsubChipSelect === 'function') this.unsubChipSelect();
+            $('[data-chip]').off('click.roulette');
             if(this._rafId) cancelAnimationFrame(this._rafId);
         },
         methods: {
@@ -405,7 +406,7 @@
                 disableChipsFor('even', rows.e.even);
 
                 const instance = this;
-                $('[data-chip]').on('click', function() {
+                $('[data-chip]').off('click.roulette').on('click.roulette', function() {
                     if(instance.chip == null) return;
 
                     let stack = $(this).find('.bet-stack');
