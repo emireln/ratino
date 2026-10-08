@@ -29,8 +29,8 @@ input, select, textarea {
     border: 1px solid $input-border;
     background: $input-bg;
     color: #fff;
-    padding: 8px 15px;
-    border-radius: 3px;
+    padding: 11px 16px;
+    border-radius: 8px;
     width: 100%;
 
     &::placeholder { color: rgba(255, 255, 255, .35); }
@@ -107,7 +107,7 @@ input, select, textarea {
     border-radius: 8px;
     padding: 18px 34px;
     text-align: center;
-    z-index: 60000;
+    z-index: 40000;
     animation: resultPopupIn .25s ease;
 
     .multiplier {
