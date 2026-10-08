@@ -419,7 +419,7 @@
             gameDataRetrieved(data) {
                 this.$bus.emit('crash:history:addEntry', { html: '' });
 
-                $('.play-button').on('click', this.onPlayButtonClick);
+                $('.play-button').off('click', this.onPlayButtonClick).on('click', this.onPlayButtonClick);
 
                 this.ctx = $('.game-crash').find('canvas')[0].getContext('2d');
                 this.reset();
