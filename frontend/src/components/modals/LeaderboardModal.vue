@@ -12,7 +12,8 @@
 
         <loader v-if="!entries"></loader>
 
-        <table class="lb-table" v-else>
+        <div class="lb-table-wrap" v-else>
+        <table class="lb-table">
             <thead>
                 <tr>
                     <th>#</th>
@@ -37,6 +38,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
     </div>
 </template>
 
@@ -102,8 +104,15 @@ export default {
     }
 }
 
+.lb-table-wrap {
+    overflow-x: auto;
+    margin: 0 -4px;
+    padding: 0 4px;
+}
+
 .lb-table {
     width: 100%;
+    min-width: 320px;
     font-size: .9em;
     border-collapse: collapse;
 
