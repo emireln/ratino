@@ -214,6 +214,18 @@ class FriendWhisper extends Whisper {
             return ['favorites' => $this->user->favoriteGames ?? []];
         }
 
+        if ($action === 'react') {
+            $emoji = $data->emoji ?? '';
+            $channel = mb_substr(trim($data->channel ?? 'live'), 0, 64);
+            $allowed = ['🔥', '🚀', '💎', '🤑', '👏', '💀', '🤯', '❤️'];
+            if (!in_array($emoji, $allowed, true)) {
+                return ['code' => 10, 'message' => 'Unknown reaction'];
+            }
+            if ($channel === '') $channel = 'live';
+            event(new FastReaction($channel, $emoji, $this->user));
+            return ['success' => true];
+        }
+
         return ['code' => 8, 'message' => 'Unknown action'];
     }
 

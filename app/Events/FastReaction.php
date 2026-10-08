@@ -24,11 +24,12 @@ class FastReaction implements ShouldBroadcastNow {
     }
 
     public function broadcastOn(): Channel {
-        return new Channel($this->channel);
+        return new Channel('live');
     }
 
     public function broadcastWith(): array {
         return [
+            'channel' => $this->channel,
             'emoji' => $this->emoji,
             'user' => $this->user == null ? null : [
                 'id' => (string) $this->user->_id,

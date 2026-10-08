@@ -51,6 +51,7 @@ export default {
     methods: {
         sendReaction(emoji) {
             if (this.reactionCooldown) return;
+            if (!this.store.user) return;
             this.reactionCooldown = true;
             setTimeout(() => this.reactionCooldown = false, 300);
 
@@ -102,6 +103,7 @@ export default {
         },
         onRemoteReaction(e) {
             if (!e || !e.emoji) return;
+            if (e.channel && this.channel !== 'live' && e.channel !== this.channel) return;
             const author = e.user ? e.user.name : null;
             this.spawnParticle(e.emoji, author);
         }
