@@ -2,7 +2,7 @@
     <div class="game-tower">
         <div class="towerColumns">
             <div class="towerMultipliers">
-                <div v-if="gameInstance.game.data[mines]" v-for="m in gameInstance.game.data[mines]" class="multiplier">{{ abbreviate(m) }}</div>
+                <div v-if="gameInstance.game && gameInstance.game.data && gameInstance.game.data[mines]" v-for="m in gameInstance.game.data[mines]" class="multiplier">{{ abbreviate(m) }}</div>
             </div>
             <div class="towerField">
                 <div v-for="row in 10" class="towerRow" :data-row-id="row - 1">

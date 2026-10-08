@@ -2,7 +2,7 @@
     <div>
         <div class="stairsColumns">
             <div class="stairsMultipliers">
-                <div v-if="gameInstance.game.data[mines]" v-for="m in gameInstance.game.data[mines]" class="multiplier">{{ abbreviate(m) }}</div>
+                <div v-if="gameInstance.game && gameInstance.game.data && gameInstance.game.data[mines]" v-for="m in gameInstance.game.data[mines]" class="multiplier">{{ abbreviate(m) }}</div>
             </div>
             <div class="stairsContainer">
                 <div class="stairsRow" v-for="(row, rowId) in rowsData" :data-row-id="rows.length - 1 - rowId">
