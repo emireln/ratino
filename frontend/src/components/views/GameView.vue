@@ -206,6 +206,15 @@ export default {
     padding: 20px 16px;
     background: transparent;
 
+    @media(max-width: 576px) {
+        padding: 12px 4px;
+        min-height: calc(100vh - 180px);
+
+        .auth-gate-card {
+            padding: 32px 24px;
+        }
+    }
+
     .auth-gate-card {
         background: #1c1d25;
         border: 1px solid rgba(255, 255, 255, 0.08);
@@ -249,7 +258,6 @@ export default {
             display: flex;
             flex-direction: column;
             gap: 10px;
-
             .btn {
                 padding: 12px 20px;
                 border-radius: 8px;
@@ -327,6 +335,8 @@ export default {
     right: 0;
     margin: 0 auto;
     width: fit-content;
+    max-width: calc(100vw - 24px);
+    overflow-x: auto;
     display: flex;
     justify-content: center;
     align-items: center;
