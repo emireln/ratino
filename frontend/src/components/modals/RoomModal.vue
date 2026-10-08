@@ -355,7 +355,11 @@ export default {
     gap: 8px;
     margin-bottom: 18px;
 
-    input { flex: 1; }
+    input { flex: 1; min-width: 0; }
+
+    @media(max-width: 480px) {
+        flex-direction: column;
+    }
 }
 
 .btn-primary-action {
@@ -405,10 +409,15 @@ export default {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 8px;
         padding: 10px 14px;
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.04);
         border: 1px solid rgba(255, 255, 255, 0.07);
+
+        @media(max-width: 480px) {
+            flex-wrap: wrap;
+        }
 
         .item-name {
             font-size: 0.95em;

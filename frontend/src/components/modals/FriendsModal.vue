@@ -283,10 +283,15 @@ export default {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 8px;
         padding: 10px 14px;
         border-radius: 10px;
         background: rgba(255, 255, 255, 0.04);
         border: 1px solid rgba(255, 255, 255, 0.07);
+
+        @media(max-width: 480px) {
+            flex-wrap: wrap;
+        }
 
         .friend-left {
             display: flex;
@@ -437,7 +442,11 @@ export default {
         display: flex;
         gap: 8px;
 
-        input { flex: 1; }
+        input { flex: 1; min-width: 0; }
+
+        @media(max-width: 480px) {
+            flex-direction: column;
+        }
 
         .btn-send-req {
             background: linear-gradient(135deg, #ff2a55 0%, #e51f49 100%) !important;
