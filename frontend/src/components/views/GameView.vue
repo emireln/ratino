@@ -118,13 +118,15 @@ export default {
             setTimeout(() => this.awaitRef(attempts + 1), 80);
         },
         forwardMultiplayer(event, gameIdOf, name) {
-            bus.on(event, (e) => {
+            const handler = (e) => {
                 const id = gameIdOf(e);
                 const ref = window.$gameRef;
                 if (!ref || !ref.multiplayerEvent) return;
                 if (id !== undefined && id !== null && String(id) !== String(this.$route.params.id)) return;
                 ref.multiplayerEvent(name, e);
-            });
+            };
+            bus.on(event, handler);
+            (this._multiplayerUnbinds || (this._multiplayerUnbinds = [])).push(() => bus.off(event, handler));
         }
     },
     watch: {
@@ -157,6 +159,7 @@ export default {
         this.awaitRef();
 
         this.ensureMultiplayer(this.$route.params.id);
+        this._multiplayerUnbinds = [];
         this.forwardMultiplayer('event:multiplayerBettingStateChange', (e) => e.game, 'MultiplayerBettingStateChange');
         this.forwardMultiplayer('event:multiplayerTimerStart', (e) => e.game, 'MultiplayerTimerStart');
         this.forwardMultiplayer('event:multiplayerGameFinished', (e) => e.game, 'MultiplayerGameFinished');
@@ -165,17 +168,18 @@ export default {
         this.forwardMultiplayer('event:multiplayerBetCancellation', (e) => e.game && e.game.game, 'MultiplayerBetCancellation');
 
         // auto-bet continuation on round start
-        bus.on('event:multiplayerTimerStart', (e) => {
+        const autoBetHandler = (e) => {
             const gi = this.gameInstance;
             if (gi && gi.game && gi.game.id === e.game && gi.bettingType === 'auto' && gi.game.autoBetSettings && gi.game.autoBetSettings.state) {
                 if (typeof gi.game.autoBetSettings.next === 'function') gi.game.autoBetSettings.next();
             }
-        });
-
-        // own-game results feed session stats
-        bus.on('event:multiplayerGameFinished', () => {});
+        };
+        bus.on('event:multiplayerTimerStart', autoBetHandler);
+        this._multiplayerUnbinds.push(() => bus.off('event:multiplayerTimerStart', autoBetHandler));
     },
     beforeUnmount() {
+        (this._multiplayerUnbinds || []).forEach((off) => { try { off(); } catch (e) {} });
+        this._multiplayerUnbinds = [];
         window.$gameRef = null;
         this.updateGameInstance((i) => {
             if (i) {
