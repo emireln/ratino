@@ -248,7 +248,7 @@ export default {
         }
 
         &:disabled {
-            opacity: 0.65;
+            opacity: 0.5;
             cursor: not-allowed;
         }
     }

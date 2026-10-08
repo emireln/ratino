@@ -305,7 +305,7 @@ export default {
         }
 
         &:disabled {
-            opacity: 0.55;
+            opacity: 0.5;
             cursor: not-allowed;
             background: rgba(255, 255, 255, 0.1) !important;
             box-shadow: none !important;
