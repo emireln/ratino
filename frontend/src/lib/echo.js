@@ -14,6 +14,7 @@ export function installEcho() {
         window.__ratinoPrivate = false;
         window.__ratinoLive = false;
         window.__ratinoMulti = {};
+        window.__ratinoChat = {};
     }
 
     window.Pusher = Pusher;
@@ -26,14 +27,25 @@ export function installEcho() {
         wssPort: 8080,
         forceTLS: window.location.protocol === 'https:',
         enabledTransports: ['ws', 'wss'],
-        auth: {
-            headers: { Authorization: `Bearer ${token}` }
-        }
+        ...(token ? { auth: { headers: { Authorization: `Bearer ${token}` } } } : {})
     });
 
     window.Echo = echo;
     echoToken = token;
     return echo;
+}
+
+export function disconnectEcho() {
+    if (echo) {
+        try { echo.disconnect(); } catch (e) {}
+    }
+    echo = null;
+    echoToken = null;
+    window.Echo = null;
+    window.__ratinoPrivate = false;
+    window.__ratinoLive = false;
+    window.__ratinoMulti = {};
+    window.__ratinoChat = {};
 }
 
 export function connectRealtime(userId) {

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import i18n from '../i18n';
 import bus from '../lib/bus';
 import client, { setToken } from '../lib/whisper';
+import { disconnectEcho } from '../lib/echo';
 
 export const useAppStore = defineStore('app', {
     state: () => ({
@@ -53,6 +54,7 @@ export const useAppStore = defineStore('app', {
             localStorage.removeItem('ratino_user');
             localStorage.removeItem('ratino_token');
             setToken(null);
+            disconnectEcho();
         },
         update() {
             if (!this.token) return;
