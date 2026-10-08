@@ -32,7 +32,7 @@ function show(message, type = 'success') {
 
     const el = document.createElement('div');
     const colors = { success: '#2fd672', error: '#e51f49', info: '#3f7bff' };
-    el.style.cssText = `background:#21232a;color:${colors[type] || '#fff'};border-left:4px solid ${colors[type] || '#fff'};padding:12px 18px;border-radius:6px;font-size:0.9em;font-weight:600;min-width:240px;max-width:360px;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:opacity .25s ease, transform .25s ease;pointer-events:auto;cursor:pointer;`;
+    el.style.cssText = `background:#21232a;color:${colors[type] || '#fff'};border-left:4px solid ${colors[type] || '#fff'};padding:12px 18px;border-radius:6px;font-size:0.9em;font-weight:600;min-width:240px;max-width:min(360px,calc(100vw - 30px));box-shadow:0 8px 24px rgba(0,0,0,.5);transition:opacity .25s ease, transform .25s ease;pointer-events:auto;cursor:pointer;`;
     el.textContent = message;
     parent.appendChild(el);
 
