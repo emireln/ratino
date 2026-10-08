@@ -115,8 +115,8 @@ export default {
 
 .heist-wheel-wrap {
     position: relative;
-    width: 280px;
-    height: 280px;
+    width: min(280px, 100%);
+    aspect-ratio: 1;
     margin: 0 auto 20px;
 
     .heist-pointer {
