@@ -251,6 +251,11 @@
 
             .wheel {
                 width: 70% !important;
+
+                canvas {
+                    max-width: 100%;
+                    height: auto;
+                }
             }
 
             .game-content-wheel .resultPopup {

@@ -658,6 +658,7 @@
             .game-content-crash {
                 canvas {
                     width: 100%;
+                    height: auto;
                 }
             }
         }

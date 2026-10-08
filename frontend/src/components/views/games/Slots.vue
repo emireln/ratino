@@ -824,6 +824,14 @@
                     left: unset;
                     right: -10px;
                 }
+
+                @include media-breakpoint-down(md) {
+                    left: -8px;
+
+                    &:last-child {
+                        right: -4px;
+                    }
+                }
             }
         }
 

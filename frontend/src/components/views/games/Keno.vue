@@ -260,11 +260,14 @@
 
     @include media-breakpoint-down(md) {
         .keno_grid {
-            grid-template-columns: repeat(8, 10vw);
-            grid-template-rows: repeat(5, 10vw);
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            grid-template-rows: none;
+            grid-auto-rows: auto;
             grid-gap: 1.5vw;
 
             font-size: 11px;
+
+            div { aspect-ratio: 1; }
         }
 
         .game-content-keno {
