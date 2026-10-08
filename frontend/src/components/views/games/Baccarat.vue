@@ -322,11 +322,11 @@
                 $('#bet').html(this.rawBitcoin(this.currency, 0));
             },
             customWagerIncrease(category) {
-                if(category === 'initialBet') return bet;
+                if(category === 'initialBet') return this.gameInstance.game.autoBetSettings.initialBet;
                 if(this.gameInstance.game.autoBetSettings[category].action === 'reset') this.bet = this.gameInstance.game.autoBetSettings.initialBet;
                 else if(this.gameInstance.game.autoBetSettings[category].value > 0)
                     _.forEach(this.bet, (value, key) => this.bet[key] = this.bet[key] + ((( this.gameInstance.game.autoBetSettings[category].value / 100) * this.bet[key])));
-                setTimeout(this.setBet, 5000);
+                setTimeout(() => this.setBet(), 5000);
             },
             extendedAutoBetHandle(take) {},
             getBet(chip) {
