@@ -72,29 +72,30 @@ export default {
             return this.store.games || [];
         },
         filteredBets() {
+            const bets = Array.isArray(this.bets) ? this.bets : [];
             if (this.filter === 'high_rollers') {
-                return this.bets.filter((b) => (b.wager >= 1000) || (b.profit >= 5000));
+                return bets.filter((b) => ((b && b.wager) >= 1000) || ((b && b.profit) >= 5000));
             }
             if (this.filter === 'lucky') {
-                return this.bets.filter((b) => (b.multiplier >= 10));
+                return bets.filter((b) => b && (b.multiplier >= 10));
             }
             if (this.filter === 'friends') {
-                const friendNames = this.friends.map((f) => f.name.toLowerCase());
-                return this.bets.filter((b) => b.user && friendNames.includes(b.user.name.toLowerCase()));
+                const friendNames = (this.friends || []).map((f) => String((f && f.name) || '').toLowerCase());
+                return bets.filter((b) => b && b.user && b.user.name && friendNames.includes(String(b.user.name).toLowerCase()));
             }
-            return this.bets;
+            return bets;
         }
     },
     methods: {
         fetch() {
-            whisper('LiveFeed').then((bets) => this.bets = bets || []).catch(() => {});
+            whisper('LiveFeed').then((bets) => this.bets = Array.isArray(bets) ? bets : []).catch(() => {});
             whisper('Friend', { action: 'list' }).then((res) => {
-                this.friends = res.friends || [];
+                this.friends = (res && res.friends) || [];
             }).catch(() => {});
         },
         isFriend(user) {
-            if (!user) return false;
-            return this.friends.some((f) => f.name.toLowerCase() === user.name.toLowerCase());
+            if (!user || !user.name) return false;
+            return (this.friends || []).some((f) => f && f.name && String(f.name).toLowerCase() === String(user.name).toLowerCase());
         },
         gameIcon(gameId) {
             const game = this.games.find((g) => g.id === gameId);
@@ -107,6 +108,8 @@ export default {
             return Math.floor(seconds / 60) + 'm ago';
         },
         onLiveBet(e) {
+            if (!e) return;
+            if (e._id && this.bets.some((b) => b && b._id === e._id)) return;
             this.bets.unshift(e);
             if (this.bets.length > 25) this.bets.pop();
         }
