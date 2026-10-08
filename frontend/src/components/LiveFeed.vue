@@ -165,6 +165,8 @@ export default {
             background: rgba(0, 0, 0, 0.3);
             padding: 3px;
             border-radius: 8px;
+            max-width: 100%;
+            overflow-x: auto;
 
             .btn-feed-tab {
                 background: transparent;
@@ -179,6 +181,8 @@ export default {
                 display: flex;
                 align-items: center;
                 gap: 5px;
+                white-space: nowrap;
+                flex-shrink: 0;
 
                 i { font-size: 0.9em; }
 
