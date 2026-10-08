@@ -6,8 +6,8 @@ const state = reactive({ modals: [] });
 export function useModal() {
     return {
         state,
-        open(name, props = {}, title = null) {
-            state.modals.push({ name, props, title });
+        open(name, props = {}, title = null, size = null) {
+            state.modals.push({ name, props, title, size });
             document.body.classList.add('show');
         },
         close() {

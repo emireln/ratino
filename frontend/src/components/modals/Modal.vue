@@ -1,7 +1,7 @@
 <template>
     <transition name="modal">
         <div class="modals" v-show="state.modals.length" @click.self="close()" @keyup.esc="close()" tabindex="0">
-            <div v-for="(modal, index) in state.modals" :key="index" class="xmodal" @click.stop>
+            <div v-for="(modal, index) in state.modals" :key="index" :class="['xmodal', modal.size ? `xmodal-${modal.size}` : '']" @click.stop>
                 <div class="modal-header-bar">
                     <span class="modal-header-title">{{ modal.title ? $t(modal.title) : '' }}</span>
                     <button class="modal-close" @click="close()" aria-label="Close modal">
@@ -96,6 +96,10 @@ body.show { overflow: hidden; }
     overflow: hidden;
     position: relative;
 
+    &.xmodal-wide {
+        width: 720px;
+    }
+
     .modal-header-bar {
         display: flex;
         align-items: center;
@@ -162,4 +166,10 @@ body.show { overflow: hidden; }
 
 .modal-enter-active, .modal-leave-active { transition: opacity .25s ease, transform .25s ease; }
 .modal-enter-from, .modal-leave-to { opacity: 0; transform: scale(0.96); }
+
+@media(max-width: 576px) {
+    .modals { padding: 20px 12px; }
+    .xmodal .modal_template { padding: 8px 16px 16px; }
+    .xmodal .modal-header-bar { padding: 12px 16px 4px; }
+}
 </style>

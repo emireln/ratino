@@ -41,7 +41,7 @@ export default {
                 switch (name) {
                     case 'help':
                         createButton('fas fa-question-circle', 'Help & Fairness Center', () => {
-                            useModal().open('Help', {}, 'help.title');
+                            useModal().open('Help', {}, 'help.title', 'wide');
                         });
                         break;
                     case 'sound': {

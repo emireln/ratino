@@ -55,7 +55,8 @@ export default {
     },
     methods: {
         open(name) {
-            useModal().open(name);
+            const wide = ['Profile', 'Help'].includes(name) ? 'wide' : null;
+            useModal().open(name, {}, null, wide);
         },
         openAuth(type) {
             useModal().open('Auth', { type });
