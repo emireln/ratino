@@ -125,7 +125,7 @@
         flipCards(dealerSecretOptions) {
             $('.down').each((i, e) => {
                 $(e).removeClass('down').addClass('up');
-                this.vm.renderCard(false, false, $(this), false, dealerSecretOptions);
+                this.vm.renderCard(false, false, $(e), false, dealerSecretOptions);
             });
         }
 
@@ -546,7 +546,7 @@
             getClientData() {
                 return {};
             },
-            callback() {
+            callback(response) {
                 if(this.isExtendedGameStarted()) {
                     this.newGame(() => {
                         $('.play-button').fadeOut('fast');
