@@ -153,7 +153,7 @@ header {
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 cursor: pointer;
                 transition: all 0.2s ease;
-                height: 38px;
+                height: 40px;
 
                 &:hover {
                     background: rgba(255, 255, 255, 0.08);
@@ -257,7 +257,7 @@ header {
 
             .btn {
                 padding: 0 16px;
-                height: 38px;
+                height: 40px;
                 border-radius: 8px;
                 font-size: 0.92rem;
                 font-weight: 700;
