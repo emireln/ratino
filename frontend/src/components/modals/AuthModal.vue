@@ -82,8 +82,8 @@ export default {
                     this.$toast.error('Please enter email, username, and password.');
                     return;
                 }
-                if (this.password.length < 4) {
-                    this.$toast.error('Password must be at least 4 characters long.');
+                if (this.password.length < 8) {
+                    this.$toast.error('Password must be at least 8 characters long.');
                     return;
                 }
                 this.loading = true;
