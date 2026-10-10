@@ -48,6 +48,10 @@ export const useAppStore = defineStore('app', {
             localStorage.setItem('ratino_token', data.token);
             setToken(data.token);
         },
+        setUser(user) {
+            this.user = user;
+            localStorage.setItem('ratino_user', JSON.stringify(user));
+        },
         logout() {
             this.user = null;
             this.token = null;
