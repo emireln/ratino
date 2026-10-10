@@ -52,9 +52,9 @@ class LeaderboardWhisper extends Whisper {
             return $collection->aggregate($pipeline)->toArray();
         });
 
-        $result = [];
-        $ids = array_map(function($e) {
-            return $e['_id'] instanceof \MongoDB\BSON\ObjectId ? (string) $e['_id'] : strval($e['_id']);
+        $ids = array_map(function($e) use ($orderBy) {
+            $val = $orderBy === 'wager' ? ($e['_id'] ?? null) : ($e['user'] ?? null);
+            return $val instanceof \MongoDB\BSON\ObjectId ? (string) $val : strval($val);
         }, $entries);
 
         $users = [];
@@ -62,8 +62,10 @@ class LeaderboardWhisper extends Whisper {
             foreach (User::whereIn('_id', $ids)->get(['name', 'avatar']) as $u) $users[strval($u->_id)] = $u;
         }
 
+        $result = [];
         foreach ($entries as $i => $e) {
-            $uid = $e['_id'] instanceof \MongoDB\BSON\ObjectId ? (string) $e['_id'] : strval($e['_id']);
+            $rawUid = $orderBy === 'wager' ? ($e['_id'] ?? null) : ($e['user'] ?? null);
+            $uid = $rawUid instanceof \MongoDB\BSON\ObjectId ? (string) $rawUid : strval($rawUid);
             $user = $users[$uid] ?? null;
             $result[] = [
                 'position' => $i + 1,
