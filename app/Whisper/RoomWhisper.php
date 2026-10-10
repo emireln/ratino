@@ -23,14 +23,14 @@ class RoomWhisper extends Whisper
             $rooms = Room::where('private', false)->orWhere('members', $this->user->_id)
                 ->orderBy('created_at', 'desc')->limit(20)->get();
 
-            return ['rooms' => array_map(function ($room) {
+            return ['rooms' => $rooms->map(function ($room) {
                 return [
                     'code' => $room->code,
                     'name' => $room->name,
                     'members' => count($room->members ?? []),
                     'owner' => strval($room->owner) === strval($this->user->_id),
                 ];
-            }, $rooms->toArray())];
+            })->toArray()];
         }
 
         if ($action === 'create') {
