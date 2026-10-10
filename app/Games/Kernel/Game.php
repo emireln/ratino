@@ -102,11 +102,10 @@ abstract class Game {
     }
 
     protected function applyHouseEdge(array $payouts): array {
-        $result = $payouts;
-        if(array_keys($payouts) !== array_keys(array_keys($payouts))) foreach($payouts as $key => $value) {
-            $result = array_replace($result, [$key => HouseEdgeModule::apply($this, $value)]);
+        $result = [];
+        foreach ($payouts as $key => $value) {
+            $result[$key] = HouseEdgeModule::apply($this, $value);
         }
-        else foreach($payouts as $value) array_push($result, HouseEdgeModule::apply($this, $value));
         return $result;
     }
 

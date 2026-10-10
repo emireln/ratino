@@ -50,19 +50,25 @@ class HouseEdgeModule extends Module {
     }
 
     public static function apply(Game $game, float $mul): float {
-        $houseEdgeModule = new HouseEdgeModule($game, null, null, null);
-        if(Modules::get($game, false)->isEnabled($houseEdgeModule)) {
-            $percent = max(0, min(100, floatval(Modules::get($game, false)->get($houseEdgeModule, 'house_edge_option'))));
-            return $mul * (1 - $percent / 100);
-        }
+        try {
+            $houseEdgeModule = new HouseEdgeModule($game, null, null, null);
+            if(Modules::get($game, false)->isEnabled($houseEdgeModule)) {
+                $percent = max(0, min(100, floatval(Modules::get($game, false)->get($houseEdgeModule, 'house_edge_option'))));
+                return $mul * (1 - $percent / 100);
+            }
+        } catch (\Throwable) {}
         return $mul;
     }
 
     public static function get(Game $game, float $default): float {
-        $houseEdgeModule = new HouseEdgeModule($game, null, null, null);
-        if(!Modules::get($game, false)->isEnabled($houseEdgeModule)) return $default;
-        $percent = max(0, min(100, floatval(Modules::get($game, false)->get($houseEdgeModule, 'house_edge_option'))));
-        return 1 - $percent / 100;
+        try {
+            $houseEdgeModule = new HouseEdgeModule($game, null, null, null);
+            if(!Modules::get($game, false)->isEnabled($houseEdgeModule)) return $default;
+            $percent = max(0, min(100, floatval(Modules::get($game, false)->get($houseEdgeModule, 'house_edge_option'))));
+            return 1 - $percent / 100;
+        } catch (\Throwable) {
+            return $default;
+        }
     }
 
 }
