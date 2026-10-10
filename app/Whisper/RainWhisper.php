@@ -45,7 +45,7 @@ class RainWhisper extends Whisper {
                 $result[] = ['_id' => $user->_id, 'name' => $user->name, 'avatar' => $user->avatar];
             }
 
-            Chat::create([
+            $chat = Chat::create([
                 'data' => [
                     'users' => $result,
                     'reward' => round($share, 2),
@@ -55,6 +55,8 @@ class RainWhisper extends Whisper {
                 'type' => 'rain',
                 'channel' => 'global'
             ]);
+
+            event(new \App\Events\ChatMessage($chat));
 
             return ['funded' => true, 'amount' => $amount, 'share' => round($share, 2)];
         }

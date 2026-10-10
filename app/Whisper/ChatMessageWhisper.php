@@ -25,7 +25,7 @@ class ChatMessageWhisper extends Whisper {
             return $this->tip($message);
         }
 
-        Chat::create([
+        $chat = Chat::create([
             'user' => [
                 '_id' => $this->user->_id,
                 'name' => $this->user->name,
@@ -37,6 +37,8 @@ class ChatMessageWhisper extends Whisper {
             'type' => 'message',
             'channel' => $channel
         ]);
+
+        event(new \App\Events\ChatMessage($chat));
 
         return [];
     }
@@ -64,7 +66,7 @@ class ChatMessageWhisper extends Whisper {
             return ['code' => 7, 'message' => 'Could not complete tip'];
         }
 
-        Chat::create([
+        $chat = Chat::create([
             'user' => [
                 '_id' => $this->user->_id,
                 'name' => $this->user->name,
@@ -80,6 +82,8 @@ class ChatMessageWhisper extends Whisper {
             'type' => 'tip',
             'channel' => 'global'
         ]);
+
+        event(new \App\Events\ChatMessage($chat));
 
         return [];
     }
