@@ -12,8 +12,7 @@ Route::get('/avatar/{hash}', function ($hash) {
     $style->setBackgroundColor('#21232a');
     $icon->setStyle($style);
 
-    $icon->displayImage('png');
-    return response('')->header('Content-Type', 'image/png');
+    return response($icon->getImageData('png'))->header('Content-Type', 'image/png');
 });
 
 Route::get('/{any?}', function () {
