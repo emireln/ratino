@@ -22,7 +22,7 @@ class Slots extends QuickGame implements MultiplierCanBeLimited {
 
     private array $icons = ['apple', 'bananas', 'cherry', 'grapes', 'orange', 'pineapple', 'strawberry', 'watermelon', 'lemon', 'kiwi', 'raspberry', 'wild', 'scatter'];
 
-    private array $payTable;
+    private ?array $payTable = null;
 
     private array $lines = [
         [1, 1, 1, 1, 1],
@@ -49,15 +49,18 @@ class Slots extends QuickGame implements MultiplierCanBeLimited {
 
     private int $scatterMultiplier = 1;
 
-    public function __construct() {
-        $this->payTable = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            $this->applyHouseEdge([0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 10, 2]),
-            $this->applyHouseEdge([5, 5, 5, 10, 10, 10, 15, 15, 25, 25, 50, 250, 5]),
-            $this->applyHouseEdge([25, 25, 25, 50, 50, 50, 75, 75, 125, 125, 250, 2500, 0]),
-            $this->applyHouseEdge([125, 125, 125, 250, 250, 250, 500, 500, 750, 750, 1250, 10000, 0])
-        ];
+    private function payTable(): array {
+        if ($this->payTable === null) {
+            $this->payTable = [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                $this->applyHouseEdge([0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 10, 2]),
+                $this->applyHouseEdge([5, 5, 5, 10, 10, 10, 15, 15, 25, 25, 50, 250, 5]),
+                $this->applyHouseEdge([25, 25, 25, 50, 50, 50, 75, 75, 125, 125, 250, 2500, 0]),
+                $this->applyHouseEdge([125, 125, 125, 250, 250, 250, 500, 500, 750, 750, 1250, 10000, 0])
+            ];
+        }
+        return $this->payTable;
     }
 
     function metadata(): Metadata {
@@ -104,8 +107,8 @@ class Slots extends QuickGame implements MultiplierCanBeLimited {
         }
 
         $values[2] = $multiplierOnly
-            ? $this->payTable[$values[1]][$values[0]]
-            : $singleLineBet * $this->payTable[$values[1]][$values[0]];
+            ? $this->payTable()[$values[1]][$values[0]]
+            : $singleLineBet * $this->payTable()[$values[1]][$values[0]];
         return $values;
     }
 
@@ -151,8 +154,8 @@ class Slots extends QuickGame implements MultiplierCanBeLimited {
         for($i = $number; $i < count($line); $i++) $line[$i] = -1;
 
         $win = $multiplierOnly
-            ? $this->payTable[$number][$symbol] * $multiplier
-            : $singleLineBet * $this->payTable[$number][$symbol] * $multiplier;
+            ? $this->payTable()[$number][$symbol] * $multiplier
+            : $singleLineBet * $this->payTable()[$number][$symbol] * $multiplier;
         if($win < $wildWin[2]) $win = $wildWin[2];
 
         return $win;
@@ -191,8 +194,8 @@ class Slots extends QuickGame implements MultiplierCanBeLimited {
 
         $numberOfScatters = min($numberOfScatters, 5);
         return $multiplierOnly
-            ? $this->payTable[$numberOfScatters][12] * $this->scatterMultiplier
-            : $this->payTable[$numberOfScatters][12] * $totalBet * $this->scatterMultiplier;
+            ? $this->payTable()[$numberOfScatters][12] * $this->scatterMultiplier
+            : $this->payTable()[$numberOfScatters][12] * $totalBet * $this->scatterMultiplier;
     }
 
     function start($user, Data $data) {
