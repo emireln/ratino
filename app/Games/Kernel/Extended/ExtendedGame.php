@@ -93,6 +93,7 @@ abstract class ExtendedGame extends Game {
             if($profit > 0) $user->balance($currency)->demo($game->demo)->quiet()->add($profit, Transaction::builder()->game($game->game)->message('Win')->get());
             app(\App\Services\SupabaseService::class)->recordGame($game, $user);
             \App\Services\BountyService::check($user, $game);
+            event(new \App\Events\LiveBet($game, $user));
         }
         return true;
     }

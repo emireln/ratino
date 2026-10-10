@@ -93,6 +93,7 @@ class Crash extends MultiplayerGame {
             if($user == null) continue;
             app(\App\Services\SupabaseService::class)->recordGame($game, $user);
             \App\Services\BountyService::check($user, $game);
+            event(new \App\Events\LiveBet($game, $user));
         }
     }
 
@@ -116,6 +117,7 @@ class Crash extends MultiplayerGame {
             $game->update(['status' => 'lose', 'profit' => 0, 'multiplier' => 0]);
             app(\App\Services\SupabaseService::class)->recordGame($game, $user);
             \App\Services\BountyService::check($user, $game);
+            event(new \App\Events\LiveBet($game, $user));
             return;
         }
         if($multiplier > 1000) $multiplier = 1;
@@ -128,6 +130,7 @@ class Crash extends MultiplayerGame {
         $user->balance(Currency::find($game->currency))->demo($game->demo)
             ->add($game->profit, Transaction::builder()->message('Crash (Take)')->game($this->metadata()->id())->get());
         event(new \App\Events\MultiplayerBetCancellation($game, $user));
+        event(new \App\Events\LiveBet($game, $user));
     }
 
     private function getCurrentMultiplier() {

@@ -56,6 +56,7 @@ abstract class QuickGame extends Game {
 
             app(\App\Services\SupabaseService::class)->recordGame($game, $data->user());
             \App\Services\BountyService::check($data->user(), $game);
+            event(new \App\Events\LiveBet($game, $data->user()));
         }
         return $result_data;
     }

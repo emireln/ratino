@@ -85,6 +85,7 @@ abstract class MultiplayerGame extends ExtendedGame
         }
         app(SupabaseService::class)->recordGame($game, $user);
         BountyService::check($user, $game);
+        event(new \App\Events\LiveBet($game, $user));
     }
 
     protected function acceptBet(Data $data)
