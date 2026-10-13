@@ -17,9 +17,7 @@ class Room extends Model {
         'code', 'name', 'private', 'owner', 'members', 'created_at'
     ];
 
-    protected $casts = [
-        'members' => 'json'
-    ];
+    // No 'json' cast: membership queries match members as an array in Mongo.
 
     public static function generateCode(): string {
         $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
