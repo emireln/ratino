@@ -2,17 +2,19 @@
 
 namespace App\Events;
 
+use App\Events\Concerns\BroadcastsShortName;
 use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldRescue;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class SocialNotification implements ShouldBroadcastNow {
+class SocialNotification implements ShouldBroadcastNow, ShouldRescue {
 
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels, BroadcastsShortName;
 
     public string $recipientId;
     public string $type;

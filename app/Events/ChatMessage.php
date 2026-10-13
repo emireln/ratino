@@ -2,16 +2,18 @@
 
 namespace App\Events;
 
+use App\Events\Concerns\BroadcastsShortName;
 use App\Models\Chat;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldRescue;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class ChatMessage implements ShouldBroadcastNow {
+class ChatMessage implements ShouldBroadcastNow, ShouldRescue {
 
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels, BroadcastsShortName;
 
     private Chat $message;
 

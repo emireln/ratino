@@ -2,16 +2,18 @@
 
 namespace App\Events;
 
+use App\Events\Concerns\BroadcastsShortName;
 use App\Games\Kernel\Game;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldRescue;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MultiplayerGameFinished implements ShouldBroadcastNow {
+class MultiplayerGameFinished implements ShouldBroadcastNow, ShouldRescue {
 
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels, BroadcastsShortName;
 
     private Game $game;
     private array $data;

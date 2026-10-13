@@ -2,17 +2,19 @@
 
 namespace App\Events;
 
+use App\Events\Concerns\BroadcastsShortName;
 use App\Currency\Currency;
 use App\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldRescue;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class BalanceModification implements ShouldBroadcastNow {
+class BalanceModification implements ShouldBroadcastNow, ShouldRescue {
 
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels, BroadcastsShortName;
 
     private User $user;
     private Currency $currency;
@@ -41,6 +43,7 @@ class BalanceModification implements ShouldBroadcastNow {
                 'value' => $this->value
             ],
             'currency' => $this->currency->id(),
+            'demo' => $this->demo,
             'balance' => $this->user->balance($this->currency)->get(),
             'demo_balance' => $this->user->balance($this->currency)->demo()->get(),
             'delay' => $this->delay
