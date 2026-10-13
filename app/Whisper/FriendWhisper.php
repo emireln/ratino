@@ -116,6 +116,12 @@ class FriendWhisper extends Whisper {
                 return ['code' => 6, 'message' => 'User not found'];
             }
 
+            // Only a request that was actually sent to us can be accepted.
+            $pending = array_filter($this->user->friend_requests ?? [], fn($r) => ($r['from_id'] ?? '') === (string) $sender->_id && ($r['type'] ?? '') === 'incoming');
+            if (empty($pending)) {
+                return ['code' => 11, 'message' => 'No pending friend request from this user'];
+            }
+
             // Remove from friend_requests
             $myRequests = array_values(array_filter(
                 $this->user->friend_requests ?? [],
@@ -176,16 +182,21 @@ class FriendWhisper extends Whisper {
         if ($action === 'invite_room') {
             $friendId = $data->friend_id ?? '';
             $roomCode = $data->room_code ?? '';
-            $roomName = $data->room_name ?? 'Game Room';
 
             if (empty($friendId) || empty($roomCode)) {
                 return ['code' => 7, 'message' => 'Friend ID and Room Code required'];
             }
 
+            // Only invite a friend into a room the inviter is actually in.
+            $room = Room::where('code', mb_strtoupper((string) $roomCode))->first();
+            if ($room == null || !in_array((string) $friendId, $this->user->friends ?? [], true) || !in_array(strval($this->user->_id), $room->members ?? [], true)) {
+                return ['code' => 12, 'message' => 'You can only invite friends to a room you are in'];
+            }
+
             event(new SocialNotification($friendId, 'room_invite', [
                 'inviter_name' => $this->user->name,
-                'room_code' => $roomCode,
-                'room_name' => $roomName
+                'room_code' => $room->code,
+                'room_name' => $room->name
             ]));
 
             return ['success' => true, 'message' => 'Invitation sent!'];
