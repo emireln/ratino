@@ -7,6 +7,8 @@ use App\Events\MultiplayerDataUpdate;
 use App\Games\Kernel\Game;
 use App\Games\Kernel\ProvablyFair;
 use App\Models\MultiplayerGameState;
+use Illuminate\Support\Facades\DB;
+use MongoDB\BSON\ObjectId;
 
 class MultiplayerGameStateBuilder
 {
@@ -88,15 +90,39 @@ class MultiplayerGameStateBuilder
         return false;
     }
 
-    public function players(?array $add = null): array
+    /**
+     * Appends a bet unless this user already has one this round. One conditional $push, so two
+     * concurrent bets cannot both land, and neither can overwrite the other's entry.
+     */
+    public function addPlayer(array $player): bool
     {
-        if ($add != null) {
-            $players = $this->state->players;
-            array_push($players, $add);
-            $this->state->update(['players' => $players]);
-        }
+        return $this->collection()->updateOne(
+            ['_id' => $this->objectId(), 'players.user._id' => ['$ne' => $player['user']['_id']]],
+            ['$push' => ['players' => $player]]
+        )->getMatchedCount() === 1;
+    }
 
-        return $this->state->players;
+    /** Read raw: Eloquent hydration renames a nested '_id' to 'id', which would break user matching. */
+    public function players(): array
+    {
+        $doc = $this->collection()->findOne(['_id' => $this->objectId()], [
+            'projection' => ['players' => 1],
+            'typeMap' => ['root' => 'array', 'document' => 'array', 'array' => 'array'],
+        ]);
+        $players = $doc['players'] ?? [];
+
+        // Rounds written before the cast removal stored players as a JSON string.
+        return is_array($players) ? $players : (json_decode((string) $players, true) ?: []);
+    }
+
+    private function collection()
+    {
+        return DB::connection('mongodb')->getCollection('multiplayer_game_states');
+    }
+
+    private function objectId(): ObjectId
+    {
+        return new ObjectId((string) $this->state->_id);
     }
 
     /**
@@ -158,6 +184,7 @@ class MultiplayerGameStateBuilder
 
     public function toArray(): array
     {
-        return $this->state->makeHidden('server_seed')->toArray();
+        // players come from the raw read so user._id survives (see players()).
+        return array_merge($this->state->makeHidden('server_seed')->toArray(), ['players' => $this->players()]);
     }
 }

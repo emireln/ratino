@@ -19,9 +19,9 @@ class MultiplayerGameState extends Model {
         'updated_at'
     ];
 
+    // 'players' stays a native array: addPlayer() appends with a Mongo $push, which needs an array.
     protected $casts = [
         'history' => 'json',
-        'players' => 'json',
         'data' => 'json'
     ];
 

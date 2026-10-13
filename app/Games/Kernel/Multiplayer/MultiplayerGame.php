@@ -41,20 +41,25 @@ abstract class MultiplayerGame extends ExtendedGame
             ->where('client_seed', $this->state()->clientSeed())->get();
     }
 
+    /** Returns false when the bet was not added (no user, or the user already bet this round). */
     public function start(Game $game)
     {
         $data = $this->getPlayerData($game);
         $user = User::where('_id', $game->user)->first();
         if ($user == null) {
-            return;
+            return false;
         }
         // players[] is served by GameData; the round seed must not ride along.
-        $this->state()->players([
+        $added = $this->state()->addPlayer([
             'user' => $user->publicProfile(),
             'game' => Arr::except($game->toArray(), ['server_seed']),
-            'data' => $this->getPlayerData($game),
+            'data' => $data,
         ]);
+        if (!$added) {
+            return false;
+        }
         event(new MultiplayerGameBet($user, $game, $data));
+        return true;
     }
 
     public function turn(Game $game, array $turnData): Turn
