@@ -82,7 +82,7 @@ abstract class MultiplayerGame extends ExtendedGame
         if($user == null) return;
         if($profit > 0) {
             $currency = Currency::find($game->currency);
-            $user->balance($currency)->demo($game->demo)->quiet()
+            $user->balance($currency)->demo($game->demo)
                 ->add($profit, Transaction::builder()->message($this->metadata()->name())->game($this->metadata()->id())->get());
         }
         app(SupabaseService::class)->recordGame($game, $user);

@@ -45,6 +45,9 @@ class User extends Authenticatable {
         'heist_claimed', 'bounties', 'streaks'
     ];
 
+    // The SPA reads user._id (realtime channel, profile links); Mongo's id attribute is not serialized.
+    protected $appends = ['_id'];
+
     protected $casts = [
         'email_verified_at' => 'datetime',
         'mute' => 'datetime',

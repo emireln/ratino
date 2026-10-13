@@ -24,7 +24,7 @@ abstract class QuickGame extends Game {
         $result = $this->start($data->guest() ? null : $data->user(), $data);
         $result_data = $result->toArray($data);
         if(!isset($result_data['code']) && !$data->guest()) {
-            $balance = $data->user()->balance(Currency::find($data->currency()))->demo($data->demo())->quiet();
+            $balance = $data->user()->balance(Currency::find($data->currency()))->demo($data->demo());
             if(!$balance->subtract($data->bet(), Transaction::builder()->game($this->metadata()->id())->message('Game')->get())) {
                 return ['code' => -4, 'message' => 'Not enough money'];
             }
