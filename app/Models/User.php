@@ -82,6 +82,11 @@ class User extends Authenticatable {
         return new ObjectId((string) $this->_id);
     }
 
+    // What other players may see (broadcasts, round state). Never balances, friends or seeds.
+    public function publicProfile(): array {
+        return ['_id' => (string) $this->_id, 'name' => $this->name, 'avatar' => $this->avatar, 'vipLevel' => $this->vipLevel()];
+    }
+
     public function clientCurrency(): Currency { return Currency::all()[0]; }
 
     public function vipLevel(): int {

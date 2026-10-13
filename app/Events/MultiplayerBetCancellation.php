@@ -29,7 +29,7 @@ class MultiplayerBetCancellation implements ShouldBroadcastNow {
     public function broadcastWith(): array {
         return [
             'game' => $this->game->makeHidden('server_seed')->makeHidden('nonce')->toArray(),
-            'user' => $this->user->toArray()
+            'user' => $this->user->publicProfile()
         ];
     }
 

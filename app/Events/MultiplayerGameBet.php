@@ -30,7 +30,7 @@ class MultiplayerGameBet implements ShouldBroadcastNow {
 
     public function broadcastWith(): array {
         return [
-            'user' => array_merge($this->user->toArray(), ['vipLevel' => $this->user->vipLevel()]),
+            'user' => $this->user->publicProfile(),
             'game' => $this->game->makeHidden('server_seed')->makeHidden('nonce')->toArray(),
             'data' => $this->data
         ];

@@ -50,7 +50,7 @@ abstract class MultiplayerGame extends ExtendedGame
         }
         // players[] is served by GameData; the round seed must not ride along.
         $this->state()->players([
-            'user' => $user->toArray(),
+            'user' => $user->publicProfile(),
             'game' => Arr::except($game->toArray(), ['server_seed']),
             'data' => $this->getPlayerData($game),
         ]);
