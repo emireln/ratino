@@ -4,7 +4,7 @@ Modern rebuild of the RATINO (old project) casino platform.
 
 | Layer | Stack |
 |---|---|---|
-| Backend | Laravel 7 / PHP 7.4 (EOL) | **Laravel 13 / PHP 8.3+** |
+| Backend | Laravel 7 / PHP 7.4 (EOL) | **Laravel 13 / PHP 8.4.1+** |
 | Database driver | jenssegers/mongodb (unmaintained) | **mongodb/laravel-mongodb 5** |
 | Frontend | Vue 2 + Vuex + webpack 4 (EOL) | **Vue 3 + Pinia + Vite 6** |
 | Realtime | laravel-echo-server + Redis polling | **Laravel Reverb** (native WebSocket, presence channels) |
@@ -12,7 +12,7 @@ Modern rebuild of the RATINO (old project) casino platform.
 
 ## Requirements
 
-- PHP 8.2+ with ext-mongodb (dev machine used PHP 8.5 + mongodb 2.4.0)
+- PHP 8.4.1+ with ext-mongodb (dev machine used PHP 8.5 + mongodb 2.4.0; composer.lock needs PHP >= 8.4.1)
 - Composer
 - Node 18+
 - MongoDB

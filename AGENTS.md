@@ -1,6 +1,6 @@
 # AGENTS.md — RATINO
 
-Casino platform for friends. Laravel 13 + PHP 8.3+ backend, MongoDB, Vue 3 + Pinia + Vite frontend, Laravel Reverb realtime. Single virtual currency: CHIPS. No banking, no crypto, no payments.
+Casino platform for friends. Laravel 13 + PHP 8.4.1+ backend, MongoDB, Vue 3 + Pinia + Vite frontend, Laravel Reverb realtime. Single virtual currency: CHIPS. No banking, no crypto, no payments.
 
 ## Talk (caveman)
 
@@ -75,7 +75,7 @@ Queue uses sqlite (DB_QUEUE_CONNECTION=sqlite); app data lives in MongoDB.
 
 ## Repo rules
 
-- PHP 8.3+ / Laravel 13 idioms. No PHP 7-era workarounds unless required by a copied kernel file.
+- PHP 8.4.1+ / Laravel 13 idioms. No PHP 7-era workarounds unless required by a copied kernel file.
 - MongoDB via mongodb/laravel-mongodb 5 — Eloquent models with `$connection = 'mongodb'`.
 - No new composer/npm deps without reason.
 - Seed management UI: intentionally absent. Server seeds fixed per account.
