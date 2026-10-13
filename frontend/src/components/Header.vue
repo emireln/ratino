@@ -30,7 +30,7 @@
                             <i class="fas fa-gift" :title="$t('heist.title')" @click="open('Heist')"></i>
                             <i class="fas fa-comments" :title="$t('chat.title')" @click="open('Chat')"></i>
                             <i class="fas fa-trophy" :title="$t('leaderboard.title')" @click="open('Leaderboard')"></i>
-                            <i class="fas fa-robot" :title="$t('ai.title')" @click="open('AiChat')"></i>
+                            <i class="fas fa-robot" role="button" tabindex="0" :title="$t('ai.title')" :aria-label="$t('ai.title')" @click="open('AiChat')" @keydown.enter="open('AiChat')"></i>
                         </div>
                         <div class="account-profile-trigger" @click="open('Profile')" title="Edit Profile & Avatar">
                             <img :src="store.user.avatar || '/img/misc/incognito-default.png'" class="header-avatar" alt="">
