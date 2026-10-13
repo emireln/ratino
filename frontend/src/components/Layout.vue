@@ -25,8 +25,10 @@ export default {
         const store = useAppStore();
         store.changeLocale(store.locale);
         store.updateData();
-        if (store.token) store.update();
-        if (store.user && store.user._id) connectRealtime(store.user._id);
+        // Subscribe once the user is known: the stored copy may predate the refresh.
+        const connect = () => { if (store.user && store.user._id) connectRealtime(store.user._id); };
+        connect();
+        if (store.token) store.update().then(connect);
 
         bus.on('event:balanceModification', (e) => {
             if (!e) return;

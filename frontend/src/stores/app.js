@@ -62,7 +62,7 @@ export const useAppStore = defineStore('app', {
         },
         update() {
             if (!this.token) return;
-            client.post('/api/auth/update').then(({ data }) => {
+            return client.post('/api/auth/update').then(({ data }) => {
                 this.user = data;
                 localStorage.setItem('ratino_user', JSON.stringify(data));
             }).catch(() => {});
