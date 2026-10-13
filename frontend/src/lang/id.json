@@ -893,5 +893,43 @@
     "404": {
         "title": "Maaf, halaman ini tidak tersedia.",
         "subtitle": "Tautan yang Anda ikuti mungkin rusak, atau halaman mungkin telah dihapus."
+    },
+    "ai": {
+        "title": "Asisten AI",
+        "settings": "Pengaturan AI",
+        "subtitle": "Gunakan kunci API Anda sendiri — tanya apa saja tentang game",
+        "key_placeholder": "Tempel kunci API Anda",
+        "save": "Simpan",
+        "test": "Uji koneksi",
+        "testing": "Menguji...",
+        "saved": "Kunci tersimpan di browser ini",
+        "latency": "Terhubung — {ms} ms",
+        "failed": "Koneksi gagal — periksa kunci Anda",
+        "no_key": "Belum ada kunci API yang dikonfigurasi",
+        "configure": "Atur kunci",
+        "ask": "Tanya tentang peluang, strategi, atau bankroll...",
+        "welcome": "Halo! Tanyakan apa saja tentang game, peluang, atau pengelolaan bankroll.",
+        "privacy": "Kunci Anda hanya disimpan di browser ini. Pesan Anda dikirim langsung dari browser ini ke penyedia yang Anda pilih, tidak melalui server RATINO. Saat keluar, kunci dan obrolan ini dihapus dari browser.",
+        "provider": "Penyedia",
+        "send": "Kirim",
+        "stop": "Hentikan",
+        "clear": "Hapus obrolan",
+        "remove": "Hapus kunci dari browser ini",
+        "removed": "Kunci dihapus dari browser ini",
+        "truncated": "Jawaban ini terpotong. Ajukan pertanyaan yang lebih singkat untuk jawaban lengkap.",
+        "err": {
+            "no_key": "Belum ada kunci API yang dikonfigurasi",
+            "auth": "Penyedia menolak kunci Anda",
+            "bad_request": "Penyedia menolak permintaan",
+            "model": "Model ini tidak tersedia untuk kunci Anda",
+            "quota": "Batas penggunaan atau kuota kunci tercapai — coba lagi nanti",
+            "unavailable": "Penyedia sedang tidak tersedia — coba lagi",
+            "blocked": "Penyedia memblokir jawaban ini",
+            "truncated": "Jawaban terpotong sebelum teks tiba — ajukan pertanyaan yang lebih singkat",
+            "empty": "Penyedia mengembalikan jawaban kosong",
+            "timeout": "Tidak ada jawaban setelah satu menit — coba lagi",
+            "network": "Tidak dapat terhubung ke penyedia — periksa koneksi",
+            "failed": "Terjadi kesalahan"
+        }
     }
 }

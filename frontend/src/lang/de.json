@@ -893,5 +893,43 @@
     "404": {
         "title": "Sorry, diese Seite ist nicht verfügbar.",
         "subtitle": "Der Link, dem Du gefolgt bist, ist möglicherweise defekt, oder die Seite wurde entfernt."
+    },
+    "ai": {
+        "title": "KI-Assistent",
+        "settings": "KI-Einstellungen",
+        "subtitle": "Eigener API-Schlüssel — frag mich alles zu den Spielen",
+        "key_placeholder": "API-Schlüssel einfügen",
+        "save": "Speichern",
+        "test": "Verbindung testen",
+        "testing": "Wird getestet...",
+        "saved": "Schlüssel in diesem Browser gespeichert",
+        "latency": "Verbunden — {ms} ms",
+        "failed": "Verbindung fehlgeschlagen — Schlüssel prüfen",
+        "no_key": "Noch kein API-Schlüssel konfiguriert",
+        "configure": "Schlüssel einrichten",
+        "ask": "Frag nach Quoten, Strategien oder Bankroll...",
+        "welcome": "Hallo! Frag mich alles über Spiele, Gewinnchancen oder Bankroll-Management.",
+        "privacy": "Dein Schlüssel bleibt nur in diesem Browser. Deine Nachrichten gehen direkt von diesem Browser an den gewählten Anbieter, nie über die Server von RATINO. Beim Abmelden werden Schlüssel und dieser Chat aus dem Browser gelöscht.",
+        "provider": "Anbieter",
+        "send": "Senden",
+        "stop": "Stoppen",
+        "clear": "Chat leeren",
+        "remove": "Schlüssel aus diesem Browser entfernen",
+        "removed": "Schlüssel aus diesem Browser entfernt",
+        "truncated": "Diese Antwort wurde abgeschnitten. Stell eine kürzere Frage für eine vollständige Antwort.",
+        "err": {
+            "no_key": "Noch kein API-Schlüssel konfiguriert",
+            "auth": "Der Anbieter hat deinen Schlüssel abgelehnt",
+            "bad_request": "Der Anbieter hat die Anfrage abgelehnt",
+            "model": "Dieses Modell ist für deinen Schlüssel nicht verfügbar",
+            "quota": "Nutzungs- oder Kontingentlimit deines Schlüssels erreicht — später erneut versuchen",
+            "unavailable": "Der Anbieter ist gerade nicht erreichbar — bitte erneut versuchen",
+            "blocked": "Der Anbieter hat diese Antwort blockiert",
+            "truncated": "Die Antwort wurde abgeschnitten, bevor Text ankam — stell eine kürzere Frage",
+            "empty": "Der Anbieter hat eine leere Antwort geliefert",
+            "timeout": "Nach einer Minute keine Antwort — bitte erneut versuchen",
+            "network": "Anbieter nicht erreichbar — prüfe deine Verbindung",
+            "failed": "Etwas ist schiefgelaufen"
+        }
     }
 }

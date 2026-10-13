@@ -895,5 +895,43 @@
     "404": {
         "title": "Lo siento, esta página no está disponible.",
         "subtitle": "El enlace que siguió puede estar roto, o la página puede haber sido eliminada."
+    },
+    "ai": {
+        "title": "Asistente IA",
+        "settings": "Configuración de IA",
+        "subtitle": "Usa tu propia clave de API — pregúntame sobre cualquier juego",
+        "key_placeholder": "Pega tu clave de API",
+        "save": "Guardar",
+        "test": "Probar conexión",
+        "testing": "Probando...",
+        "saved": "Clave guardada en este navegador",
+        "latency": "Conectado — {ms} ms",
+        "failed": "Error de conexión — revisa tu clave",
+        "no_key": "Aún no hay una clave de API configurada",
+        "configure": "Configurar clave",
+        "ask": "Pregunta sobre cuotas, estrategias o banca...",
+        "welcome": "¡Hola! Pregúntame cualquier cosa sobre juegos, probabilidades o gestión de banca.",
+        "privacy": "Tu clave se queda solo en este navegador. Tus mensajes van directamente desde este navegador al proveedor elegido, sin pasar por los servidores de RATINO. Al cerrar sesión se borran la clave y este chat de este navegador.",
+        "provider": "Proveedor",
+        "send": "Enviar",
+        "stop": "Detener",
+        "clear": "Borrar chat",
+        "remove": "Quitar clave de este navegador",
+        "removed": "Clave eliminada de este navegador",
+        "truncated": "Esta respuesta se cortó. Haz una pregunta más corta para una respuesta completa.",
+        "err": {
+            "no_key": "Aún no hay una clave de API configurada",
+            "auth": "El proveedor rechazó tu clave",
+            "bad_request": "El proveedor rechazó la solicitud",
+            "model": "Este modelo no está disponible para tu clave",
+            "quota": "Se alcanzó el límite de uso o la cuota de tu clave — inténtalo más tarde",
+            "unavailable": "El proveedor no está disponible ahora — inténtalo de nuevo",
+            "blocked": "El proveedor bloqueó esta respuesta",
+            "truncated": "La respuesta se cortó antes de llegar al texto — haz una pregunta más corta",
+            "empty": "El proveedor devolvió una respuesta vacía",
+            "timeout": "Sin respuesta después de un minuto — inténtalo de nuevo",
+            "network": "No se pudo conectar con el proveedor — revisa tu conexión",
+            "failed": "Algo salió mal"
+        }
     }
 }
