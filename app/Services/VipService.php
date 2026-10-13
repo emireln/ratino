@@ -51,7 +51,7 @@ class VipService {
 
         $users = DB::connection('mongodb')->getCollection($user->getTable());
         $updated = $users->findOneAndUpdate(
-            ['_id' => $user->_id],
+            ['_id' => $user->bsonId()],
             ['$inc' => ['vip_wager' => new Decimal128(number_format($bet, 8, '.', ''))]],
             ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER]
         );
@@ -62,7 +62,7 @@ class VipService {
         $after = self::tierIndex($wager);
         $rakeback = $bet * self::tier($before)['rakeback'];
         if($rakeback > 0) $users->updateOne(
-            ['_id' => $user->_id],
+            ['_id' => $user->bsonId()],
             ['$inc' => ['vip_rakeback' => new Decimal128(number_format($rakeback, 8, '.', ''))]]
         );
         $user->setAttribute('vip_wager', $updated->vip_wager);
@@ -71,7 +71,7 @@ class VipService {
             for ($i = $before + 1; $i <= $after; $i++) {
                 $tier = self::tier($i);
                 $claim = $users->updateOne(
-                    ['_id' => $user->_id, 'vip_milestones' => ['$ne' => $tier['name']]],
+                    ['_id' => $user->bsonId(), 'vip_milestones' => ['$ne' => $tier['name']]],
                     ['$addToSet' => ['vip_milestones' => $tier['name']]]
                 );
                 if($claim->getMatchedCount() === 0) continue;
@@ -91,7 +91,7 @@ class VipService {
      */
     public static function claim(User $user): float {
         $claimed = DB::connection('mongodb')->getCollection($user->getTable())->findOneAndUpdate(
-            ['_id' => $user->_id, 'vip_rakeback' => ['$gte' => new Decimal128('0.01')]],
+            ['_id' => $user->bsonId(), 'vip_rakeback' => ['$gte' => new Decimal128('0.01')]],
             ['$set' => ['vip_rakeback' => new Decimal128('0')]],
             ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_BEFORE]
         );

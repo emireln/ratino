@@ -64,7 +64,7 @@ class HeistService {
         $claimedAt = now();
         $cutoff = $claimedAt->copy()->subHours(24);
         $claim = DB::connection('mongodb')->getCollection($user->getTable())->updateOne(
-            ['_id' => $user->_id, '$or' => [
+            ['_id' => $user->bsonId(), '$or' => [
                 ['heist_claimed' => ['$exists' => false]],
                 ['heist_claimed' => null],
                 ['heist_claimed' => ['$lte' => new UTCDateTime($cutoff->getTimestamp() * 1000)]]

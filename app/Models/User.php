@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use MongoDB\BSON\Decimal128;
+use MongoDB\BSON\ObjectId;
 use MongoDB\Operation\FindOneAndUpdate;
 use MongoDB\Laravel\Auth\User as Authenticatable;
 
@@ -74,6 +75,11 @@ class User extends Authenticatable {
 
     public function balance(Currency $currency): UserBalance {
         return new UserBalance($this, $currency);
+    }
+
+    // `_id` reads back as a string; raw collection filters need the stored ObjectId.
+    public function bsonId(): ObjectId {
+        return new ObjectId((string) $this->_id);
     }
 
     public function clientCurrency(): Currency { return Currency::all()[0]; }
@@ -147,7 +153,7 @@ class UserBalance {
         $update = ['$inc' => [$column => new Decimal128(number_format($amount, 2, '.', ''))]];
         if($set) $update['$set'] = $set;
         $updated = DB::connection('mongodb')->getCollection($this->user->getTable())->findOneAndUpdate(
-            array_merge(['_id' => $this->user->_id], $conditions),
+            array_merge(['_id' => $this->user->bsonId()], $conditions),
             $update,
             ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER]
         );
@@ -177,7 +183,7 @@ class UserBalance {
 
         $column = $this->getColumn();
         $updated = DB::connection('mongodb')->getCollection($this->user->getTable())->findOneAndUpdate(
-            ['_id' => $this->user->_id, $column => ['$gte' => new Decimal128(number_format($amount, 2, '.', ''))]],
+            ['_id' => $this->user->bsonId(), $column => ['$gte' => new Decimal128(number_format($amount, 2, '.', ''))]],
             ['$inc' => [$column => new Decimal128(number_format(-$amount, 2, '.', ''))]],
             ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER]
         );

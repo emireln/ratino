@@ -95,7 +95,7 @@ class BountyService {
                     ? ['$set' => [$currentPath => $newValue]]
                     : ['$inc' => [$currentPath => $newValue]];
                 $updated = $users->findOneAndUpdate(
-                    ['_id' => $user->_id, $claimedPath => ['$ne' => true]],
+                    ['_id' => $user->bsonId(), $claimedPath => ['$ne' => true]],
                     $operation,
                     ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER]
                 );
@@ -106,7 +106,7 @@ class BountyService {
                 if($current < $bounty['target']) continue;
 
                 $claim = $users->updateOne(
-                    ['_id' => $user->_id, $claimedPath => ['$ne' => true], $currentPath => ['$gte' => $bounty['target']]],
+                    ['_id' => $user->bsonId(), $claimedPath => ['$ne' => true], $currentPath => ['$gte' => $bounty['target']]],
                     ['$set' => [$currentPath => $bounty['target'], $claimedPath => true]]
                 );
                 if($claim->getMatchedCount() === 0) continue;
@@ -162,7 +162,7 @@ class BountyService {
         $path = 'streaks.' . $game->game;
         $users = DB::connection('mongodb')->getCollection($user->getTable());
         $updated = $users->findOneAndUpdate(
-            ['_id' => $user->_id],
+            ['_id' => $user->bsonId()],
             $game->status === 'win' ? ['$inc' => [$path => 1]] : ['$set' => [$path => 0]],
             ['returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER]
         );
