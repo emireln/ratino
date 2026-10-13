@@ -23,6 +23,8 @@ class FinishWhisper extends Whisper {
 
         if(!$api_game->finish($game)) return ['code' => 2, 'message' => 'Game is finished'];
         $game->refresh();
+        // Multiplayer round seed stays secret until the round ends (MultiplayerGameFinished).
+        if($api_game instanceof MultiplayerGame) $game->makeHidden('server_seed');
         return [
             'game' => $game->toArray()
         ];

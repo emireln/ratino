@@ -14,6 +14,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Services\BountyService;
 use App\Services\SupabaseService;
+use Illuminate\Support\Arr;
 
 abstract class MultiplayerGame extends ExtendedGame
 {
@@ -47,9 +48,10 @@ abstract class MultiplayerGame extends ExtendedGame
         if ($user == null) {
             return;
         }
+        // players[] is served by GameData; the round seed must not ride along.
         $this->state()->players([
             'user' => $user->toArray(),
-            'game' => $game->toArray(),
+            'game' => Arr::except($game->toArray(), ['server_seed']),
             'data' => $this->getPlayerData($game),
         ]);
         event(new MultiplayerGameBet($user, $game, $data));
