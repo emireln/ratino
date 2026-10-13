@@ -3,6 +3,7 @@ import i18n from '../i18n';
 import bus from '../lib/bus';
 import client, { setToken } from '../lib/whisper';
 import { disconnectEcho } from '../lib/echo';
+import { clearAssistantData } from '../lib/ai';
 
 export const useAppStore = defineStore('app', {
     state: () => ({
@@ -53,6 +54,7 @@ export const useAppStore = defineStore('app', {
             localStorage.setItem('ratino_user', JSON.stringify(user));
         },
         logout() {
+            clearAssistantData();
             this.user = null;
             this.token = null;
             localStorage.removeItem('ratino_user');
