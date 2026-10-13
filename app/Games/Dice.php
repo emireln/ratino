@@ -74,10 +74,9 @@ class Dice extends QuickGame implements MultiplierCanBeLimited {
         return [(floor($result->extractFloat() * 101)) + 10];
     }
 
+    // min..max are inclusive winning rolls: max - min + 1 of the 101 outcomes.
     private function payout($min, $max) {
-        if($min == $max) return 99.0;
-        $range = $max - $min;
-        return 99.0 / $range;
+        return 99.0 / ($max - $min + 1);
     }
 
     public function multiplier(?Game $game, ?Data $data, ProvablyFairResult $result): float {
