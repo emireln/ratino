@@ -139,7 +139,8 @@
             update() {
                 const value = $('.game-dice .dice-slider').slider('value');
                 this.$bus.emit('profit:update', this.getProfit(this.currentTarget === 'lower' ? 0 : value - 10, this.currentTarget === 'higher' ? 100 : value - 10));
-                $('.dice-chance').val((this.currentTarget === 'higher' ? 110 - value : value - 10) + '%');
+                const winningRolls = this.currentTarget === 'higher' ? 111 - value : value - 9;
+                $('.dice-chance').val((winningRolls / 101 * 100).toFixed(2) + '%');
                 $('.dice-number').val(value);
                 $('.dice-header.dice-target').html(this.$t(`dice.${this.currentTarget}`));
             },
@@ -197,12 +198,8 @@
                 ]
             },
             getProfit(min, max) {
-                let payout, range;
-                if(min === max) payout = 99.0;
-                else {
-                    range = max - min;
-                    payout = 99.0 / range;
-                }
+                // max - min + 1 winning rolls out of 101; mirrors Dice::payout() on the server.
+                const payout = 99.0 / (max - min + 1);
 
                 $('.dice-payout').val(`x${payout.toFixed(2)}`);
                 return payout * this.gameInstance.bet - this.gameInstance.bet;
