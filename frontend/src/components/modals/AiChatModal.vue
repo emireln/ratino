@@ -2,89 +2,117 @@
     <div class="ai-chat">
         <div class="ai-chat-header">
             <span>{{ $t('ai.subtitle') }}</span>
-            <i class="fas fa-cog ai-cog" :title="$t('ai.settings')" @click="openSettings"></i>
+            <div class="ai-tools">
+                <button v-if="messages.length" type="button" class="ai-tool" :disabled="typing" :aria-label="$t('ai.clear')" :title="$t('ai.clear')" @click="clearChat">
+                    <i class="fas fa-eraser"></i>
+                </button>
+                <button type="button" class="ai-tool" :aria-label="$t('ai.settings')" :title="$t('ai.settings')" @click="openSettings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
         </div>
 
-        <div class="ai-messages" ref="messages">
-            <div v-for="(m, i) in messages" :key="i" :class="['ai-msg', m.role]">
+        <div class="ai-messages" ref="messages" role="log" aria-live="polite">
+            <div v-for="(m, i) in messages" :key="i" :class="['ai-msg', m.role, { 'ai-error': m.error }]">
                 <div class="ai-msg-icon">
                     <i class="fas fa-user" v-if="m.role === 'user'"></i>
-                    <i class="fas fa-wand-magic-sparkles ai-assist-icon" v-else></i>
+                    <i class="fas fa-magic ai-assist-icon" v-else></i>
                 </div>
-                <div class="ai-msg-bubble">{{ m.content }}</div>
+                <div class="ai-msg-bubble">
+                    {{ m.content }}
+                    <div class="ai-note-inline" v-if="m.truncated">{{ $t('ai.truncated') }}</div>
+                </div>
             </div>
-            <div class="ai-msg ai-typing" v-if="typing">
+            <div class="ai-msg ai-typing" v-if="typing" aria-hidden="true">
                 <div class="ai-msg-icon">
-                    <i class="fas fa-wand-magic-sparkles ai-assist-icon"></i>
+                    <i class="fas fa-magic ai-assist-icon"></i>
                 </div>
                 <div class="ai-msg-bubble ai-dots"><span></span><span></span><span></span></div>
             </div>
             <div class="ai-empty" v-if="!messages.length">
-                <div class="ai-empty-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                <div class="ai-empty-icon"><i class="fas fa-magic"></i></div>
                 <div>{{ $t('ai.welcome') }}</div>
             </div>
         </div>
 
         <div class="ai-no-key" v-if="!hasKey">
             <span>{{ $t('ai.no_key') }}</span>
-            <button class="btn btn-primary btn-sm" @click="openSettings">{{ $t('ai.configure') }}</button>
+            <button type="button" class="btn btn-primary btn-sm" @click="openSettings">{{ $t('ai.configure') }}</button>
         </div>
 
         <div class="ai-input" v-else>
-            <input v-model="message" type="text" :placeholder="$t('ai.ask')" @keyup.enter="send" :disabled="typing">
-            <button class="btn btn-primary" @click="send" :disabled="typing || !message.length">
+            <input v-model="message" type="text" :placeholder="$t('ai.ask')" :aria-label="$t('ai.ask')" :disabled="typing" @keydown.enter="onEnter">
+            <button v-if="!typing" type="button" class="btn btn-primary" :disabled="!message.trim()" :aria-label="$t('ai.send')" :title="$t('ai.send')" @click="send">
                 <i class="fas fa-paper-plane"></i>
+            </button>
+            <button v-else type="button" class="btn btn-secondary" :aria-label="$t('ai.stop')" :title="$t('ai.stop')" @click="cancel">
+                <i class="fas fa-stop"></i>
             </button>
         </div>
     </div>
 </template>
 
 <script>
+import { useAppStore } from '../../stores/app';
 import { useModal } from '../../composables/useModal';
-import { getProvider, hasKey, ask } from '../../lib/ai';
-
-const HISTORY_KEY = 'ai_chat_history';
+import { ask, hasKey, chatHistoryKey, errorKey } from '../../lib/ai';
 
 export default {
     data() {
         return {
             messages: [],
             message: '',
-            typing: false
+            typing: false,
+            controller: null,
+            hasKey: hasKey()
         };
     },
     computed: {
-        hasKey() { return hasKey(); },
-        provider() { return getProvider(); },
-        providerName() { return getProvider() === 'gemini' ? 'Gemini' : 'OpenAI'; }
+        // Per account: another player on this browser never sees this conversation.
+        historyKey() { return chatHistoryKey(useAppStore().user && useAppStore().user._id); }
     },
     methods: {
         openSettings() {
             useModal().close();
             useModal().open('AiSettings', {}, 'ai.settings');
         },
+        onEnter(event) {
+            // During IME composition, Enter confirms the text; it must not send the question.
+            if (event.isComposing) return;
+            this.send();
+        },
         persist() {
-            localStorage.setItem(HISTORY_KEY, JSON.stringify(this.messages.slice(-50)));
+            localStorage.setItem(this.historyKey, JSON.stringify(this.messages.slice(-50)));
+        },
+        clearChat() {
+            this.messages = [];
+            localStorage.removeItem(this.historyKey);
         },
         send() {
-            if (this.typing || !this.message.length) return;
-            const question = this.message;
+            const question = this.message.trim();
+            if (this.typing || !question) return;
             this.message = '';
             this.messages.push({ role: 'user', content: question });
             this.persist();
             this.typing = true;
+            this.controller = new AbortController();
             this.scroll();
 
-            ask(this.messages.slice(-12)).then((r) => {
-                this.messages.push({ role: 'assistant', content: r.content });
+            ask(this.messages, { signal: this.controller.signal }).then((r) => {
+                this.messages.push({ role: 'assistant', content: r.content, truncated: r.truncated });
             }).catch((e) => {
-                const error = e && e.message ? e.message : this.$t('ai.failed');
-                this.messages.push({ role: 'assistant', content: error });
+                if (e && e.code === 'cancelled') return;
+                const detail = e && e.detail ? ` (${e.detail})` : '';
+                this.messages.push({ role: 'assistant', content: this.$t(errorKey(e)) + detail, error: true });
             }).finally(() => {
                 this.typing = false;
+                this.controller = null;
                 this.persist();
                 this.scroll();
             });
+        },
+        cancel() {
+            if (this.controller) this.controller.abort();
         },
         scroll() {
             this.$nextTick(() => {
@@ -95,7 +123,10 @@ export default {
     },
     mounted() {
         try {
-            this.messages = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            const saved = JSON.parse(localStorage.getItem(this.historyKey) || '[]');
+            this.messages = Array.isArray(saved)
+                ? saved.filter((m) => m && typeof m.content === 'string' && (m.role === 'user' || m.role === 'assistant'))
+                : [];
         } catch (e) {
             this.messages = [];
         }
@@ -120,7 +151,25 @@ export default {
         opacity: .7;
         margin-bottom: 12px;
 
-        .ai-cog { cursor: pointer; }
+        .ai-tools {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+    }
+
+    .ai-tool {
+        background: none;
+        border: 0;
+        color: inherit;
+        padding: 4px 6px;
+        border-radius: 6px;
+        cursor: pointer;
+        opacity: .8;
+
+        &:hover:not(:disabled) { opacity: 1; background: rgba(255, 255, 255, .06); }
+        &:disabled { opacity: .3; cursor: default; }
+        &:focus-visible { outline: 2px solid #e51f49; outline-offset: 1px; }
     }
 
     .ai-messages {
@@ -166,6 +215,12 @@ export default {
                 word-break: break-word;
             }
 
+            .ai-note-inline {
+                margin-top: 6px;
+                font-size: .8em;
+                opacity: .65;
+            }
+
             &.user {
                 flex-direction: row-reverse;
 
@@ -186,6 +241,11 @@ export default {
                     background: rgba(255, 255, 255, .08);
                     border-top-left-radius: 3px;
                 }
+            }
+
+            &.ai-error .ai-msg-bubble {
+                color: #ff8a9c;
+                border: 1px solid rgba(223, 52, 79, 0.3);
             }
         }
 
