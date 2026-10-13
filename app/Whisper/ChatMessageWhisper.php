@@ -1,6 +1,7 @@
 <?php namespace App\Whisper;
 
 use App\Models\Chat;
+use App\Models\Room;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Currency\Currency;
@@ -16,6 +17,11 @@ class ChatMessageWhisper extends Whisper {
 
         $message = mb_substr(trim($data->message ?? ''), 0, 400);
         $channel = mb_substr($data->channel ?? 'global', 0, 32);
+
+        if ($channel !== 'global') {
+            $room = Room::where('code', $channel)->first();
+            if ($room == null || ($room->private && !in_array(strval($this->user->_id), $room->members ?? [], true))) return ['code' => 8, 'message' => 'Not a member of this room'];
+        }
 
         if (strlen($message) < 1) return ['code' => 2, 'message' => 'Empty message'];
         if ($this->user->mute != null && !$this->user->mute->isPast()) return ['code' => 3, 'message' => 'User is muted'];
