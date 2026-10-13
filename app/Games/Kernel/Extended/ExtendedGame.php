@@ -26,8 +26,8 @@ abstract class ExtendedGame extends Game {
         if(!$balance->subtract($data->bet(), Transaction::builder()->game($data->id())->message('Game')->get())) return ['code' => -4, 'message' => 'Not enough money'];
         \App\Services\VipService::onBet($data->user(), $data->bet(), $data->demo());
 
+        // No sequential 'id' field: laravel-mongodb reads $game->_id through the 'id' attribute.
         $game = \App\Models\Game::create([
-            'id' => \App\Models\Game::count() + 1,
             'user' => $data->guest() ? null : $data->user()->_id,
             'game' => $this->metadata()->id(),
             'wager' => $data->bet(),

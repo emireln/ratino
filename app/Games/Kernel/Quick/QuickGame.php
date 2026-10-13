@@ -38,7 +38,6 @@ abstract class QuickGame extends Game {
 
         if(!$data->guest()) {
             $game = \App\Models\Game::create([
-                'id' => \App\Models\Game::count() + 1,
                 'user' => $data->user()->_id,
                 'game' => $this->metadata()->id(),
                 'wager' => $data->bet(),
