@@ -83,11 +83,13 @@ class Baccarat extends MultiplayerGame {
                     array_push($dealer, $this->deck()[$result[$index] + 1]);
                 }
 
-                $playerScore = isset($player[2]) ? ($player[0]['baccaratValue'] + $player[1]['baccaratValue'] + $player[2]['baccaratValue']) % 10
-                    : ($player[0]['baccaratValue'] + $player[1]['baccaratValue']) % 10;
-                $bankerScore = isset($dealer[2]) ? ($dealer[0]['baccaratValue'] + $dealer[1]['baccaratValue'] + $dealer[2]['baccaratValue']) % 10
-                    : ($dealer[0]['baccaratValue'] + $dealer[1]['baccaratValue']) % 10;
             }
+
+            // Rescore after all draws: the banker can draw a third card even when the player stood.
+            $playerScore = isset($player[2]) ? ($player[0]['baccaratValue'] + $player[1]['baccaratValue'] + $player[2]['baccaratValue']) % 10
+                : ($player[0]['baccaratValue'] + $player[1]['baccaratValue']) % 10;
+            $bankerScore = isset($dealer[2]) ? ($dealer[0]['baccaratValue'] + $dealer[1]['baccaratValue'] + $dealer[2]['baccaratValue']) % 10
+                : ($dealer[0]['baccaratValue'] + $dealer[1]['baccaratValue']) % 10;
         };
 
         $playerScore = $this->getScore($player);
