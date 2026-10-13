@@ -24,33 +24,44 @@ abstract class ExtendedGame extends Game {
 
         $balance = $data->user()->balance(Currency::find($data->currency()))->demo($data->demo());
         if(!$balance->subtract($data->bet(), Transaction::builder()->game($data->id())->message('Game')->get())) return ['code' => -4, 'message' => 'Not enough money'];
-        \App\Services\VipService::onBet($data->user(), $data->bet(), $data->demo());
 
-        // No sequential 'id' field: laravel-mongodb reads $game->_id through the 'id' attribute.
-        $game = \App\Models\Game::create([
-            'user' => $data->guest() ? null : $data->user()->_id,
-            'game' => $this->metadata()->id(),
-            'wager' => $data->bet(),
-            'status' => 'in-progress',
-            'profit' => 0,
-            'server_seed' => $this->server_seed(),
-            'client_seed' => $this->client_seed(),
-            'nonce' => $this->nonce(),
-            'multiplier' => 0,
-            'currency' => $data->currency(),
-            'data' => [
-                'turn' => 0,
-                'history' => [],
-                'game_data' => [],
-                'user_data' => $data->toArray()
-            ],
-            'demo' => $data->demo(),
-            'type' => $this instanceof MultiplayerGame ? 'multiplayer' : 'extended',
-            'settled' => false,
-            'turn_lock' => false
-        ]);
+        // The stake is already debited: if anything below fails, undo it instead of losing it.
+        $game = null;
+        try {
+            \App\Services\VipService::onBet($data->user(), $data->bet(), $data->demo());
 
-        $this->start($game);
+            // No sequential 'id' field: laravel-mongodb reads $game->_id through the 'id' attribute.
+            $game = \App\Models\Game::create([
+                'user' => $data->guest() ? null : $data->user()->_id,
+                'game' => $this->metadata()->id(),
+                'wager' => $data->bet(),
+                'status' => 'in-progress',
+                'profit' => 0,
+                'server_seed' => $this->server_seed(),
+                'client_seed' => $this->client_seed(),
+                'nonce' => $this->nonce(),
+                'multiplier' => 0,
+                'currency' => $data->currency(),
+                'data' => [
+                    'turn' => 0,
+                    'history' => [],
+                    'game_data' => [],
+                    'user_data' => $data->toArray()
+                ],
+                'demo' => $data->demo(),
+                'type' => $this instanceof MultiplayerGame ? 'multiplayer' : 'extended',
+                'settled' => false,
+                'turn_lock' => false
+            ]);
+
+            if($this->start($game) === false) {
+                $this->refundStake($data, $game);
+                return ['code' => -6, 'message' => "Can't place more than one bet"];
+            }
+        } catch (\Throwable $e) {
+            $this->refundStake($data, $game);
+            throw $e;
+        }
 
         return [
             'response' => [
@@ -60,6 +71,12 @@ abstract class ExtendedGame extends Game {
                 'canBeFinished' => $this instanceof MultiplayerGame ? $this->canBeFinished() : null
             ]
         ];
+    }
+
+    /** Undo a stake whose game never started. Cancel the record first so Finish cannot refund it again. */
+    private function refundStake(Data $data, ?\App\Models\Game $game) {
+        if($game != null) $game->update(['status' => 'cancelled', 'settled' => true]);
+        $data->user()->balance(Currency::find($data->currency()))->demo($data->demo())->add($data->bet(), Transaction::builder()->game($data->id())->message('Bet refund')->get());
     }
 
     public function finish(\App\Models\Game $game) {
