@@ -91,9 +91,13 @@ class BountyService {
 
                 $currentPath = 'bounties.' . $period . '.' . $bounty['id'] . '.current';
                 $claimedPath = 'bounties.' . $period . '.' . $bounty['id'] . '.claimed';
-                $operation = $bounty['type'] === 'streak'
-                    ? ['$set' => [$currentPath => $newValue]]
-                    : ['$inc' => [$currentPath => $newValue]];
+                // 'game'/'mines'/'multiplier' track the best single hit; summing multipliers would
+                // let several small wins add up to "Hit 10x".
+                $operation = match ($bounty['type']) {
+                    'streak' => ['$set' => [$currentPath => $newValue]],
+                    'wager', 'wins' => ['$inc' => [$currentPath => $newValue]],
+                    default => ['$max' => [$currentPath => $newValue]],
+                };
                 $updated = $users->findOneAndUpdate(
                     ['_id' => $user->bsonId(), $claimedPath => ['$ne' => true]],
                     $operation,
@@ -154,8 +158,9 @@ class BountyService {
     }
 
     private static function progressFor(User $user, string $period, string $id): array {
-        $bounties = $user->bounties ?? [];
-        return $bounties[$period][$id] ?? ['current' => 0, 'claimed' => false];
+        // $inc/$max write only 'current' on first progress, so 'claimed' may be absent.
+        $progress = ($user->bounties ?? [])[$period][$id] ?? [];
+        return ['current' => $progress['current'] ?? 0, 'claimed' => $progress['claimed'] ?? false];
     }
 
     private static function updateStreak(User $user, $game): int {
