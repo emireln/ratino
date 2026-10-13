@@ -1,80 +1,95 @@
 <template>
     <div class="ai-settings">
-        <div class="ai-providers">
-            <div :class="['ai-provider', provider === 'gemini' ? 'active' : '']" @click="select('gemini')">
-                <img src="/img/misc/gemini-icon.svg" alt="Gemini" class="ai-provider-icon">
-                <span>Google Gemini</span>
-            </div>
-            <div :class="['ai-provider', provider === 'openai' ? 'active' : '']" @click="select('openai')">
-                <img src="/img/misc/openai-icon.svg" alt="OpenAI" class="ai-provider-icon">
-                <span>OpenAI</span>
-            </div>
+        <div class="ai-providers" role="group" :aria-label="$t('ai.provider')">
+            <button v-for="p in providers" :key="p.id" type="button" :class="['ai-provider', provider === p.id ? 'active' : '']" :aria-pressed="provider === p.id" @click="select(p.id)">
+                <img :src="p.icon" alt="" class="ai-provider-icon">
+                <span>{{ p.name }}</span>
+            </button>
         </div>
 
         <div class="ai-key-row">
-            <input v-model="key" type="password" :placeholder="$t('ai.key_placeholder')" @keyup.enter="save" class="ai-key-input">
+            <input v-model="apiKey" type="password" autocomplete="off" spellcheck="false" :placeholder="$t('ai.key_placeholder')" :aria-label="$t('ai.key_placeholder')" class="ai-key-input" @keydown.enter="onEnter">
         </div>
 
         <div class="ai-actions">
-            <button class="btn btn-primary" @click="save">{{ $t('ai.save') }}</button>
-            <button class="btn btn-secondary" @click="test" :disabled="testing || !key.length">
+            <button type="button" class="btn btn-primary" :disabled="!apiKey.trim()" @click="save">{{ $t('ai.save') }}</button>
+            <button type="button" class="btn btn-secondary" :disabled="testing || !apiKey.trim()" @click="test">
                 {{ testing ? $t('ai.testing') : $t('ai.test') }}
             </button>
         </div>
 
-        <div class="ai-status" :class="statusClass" v-if="statusText">
-            <i :class="statusIcon"></i>
-            <span>{{ statusText }}</span>
+        <button v-if="savedKey()" type="button" class="ai-remove" @click="remove">{{ $t('ai.remove') }}</button>
+
+        <div class="ai-status" role="status" :class="status ? status.kind : ''" v-if="status">
+            <i :class="status.icon"></i>
+            <span>{{ status.text }}</span>
         </div>
 
         <div class="ai-note">
             <i class="fas fa-lock"></i>
-            {{ $t('ai.privacy') }}
+            <span>{{ $t('ai.privacy') }}</span>
         </div>
     </div>
 </template>
 
 <script>
-import { getProvider, getKey, setKey, setProvider, ask } from '../../lib/ai';
+import { PROVIDERS, getProvider, getKey, setKey, removeKey, setProvider, testKey, errorKey } from '../../lib/ai';
 
 export default {
     data() {
         return {
             provider: getProvider(),
-            key: getKey(),
+            apiKey: getKey(),
             testing: false,
-            statusText: '',
-            statusClass: '',
-            statusIcon: ''
+            status: null
         };
     },
+    computed: {
+        providers() {
+            return [
+                { id: 'gemini', name: PROVIDERS.gemini.name, icon: '/img/misc/gemini-icon.svg' },
+                { id: 'openai', name: PROVIDERS.openai.name, icon: '/img/misc/openai-icon.svg' }
+            ];
+        }
+    },
     methods: {
+        savedKey() {
+            return getKey(this.provider).length > 0;
+        },
         select(provider) {
             this.provider = provider;
-            this.key = getKey(provider);
-            this.statusText = '';
+            this.apiKey = getKey(provider);
+            this.status = null;
+        },
+        onEnter(event) {
+            if (!event.isComposing) this.save();
         },
         save() {
+            const key = this.apiKey.trim();
+            if (!key) return;
             setProvider(this.provider);
-            setKey(this.provider, this.key);
-            this.statusText = this.$t('ai.saved');
-            this.statusClass = 'ok';
-            this.statusIcon = 'fas fa-check-circle';
+            setKey(this.provider, key);
+            this.status = { kind: 'ok', icon: 'fas fa-check-circle', text: this.$t('ai.saved') };
+        },
+        remove() {
+            removeKey(this.provider);
+            this.apiKey = '';
+            this.status = { kind: 'ok', icon: 'fas fa-check-circle', text: this.$t('ai.removed') };
         },
         test() {
+            // Tests the key as typed; nothing is saved until the player presses Save.
+            const key = this.apiKey.trim();
+            if (!key || this.testing) return;
             this.testing = true;
-            this.statusText = '';
-            setProvider(this.provider);
-            setKey(this.provider, this.key);
-            ask([{ role: 'user', content: 'ping' }], 10).then((r) => {
-                this.statusText = this.$t('ai.latency', { ms: r.ms });
-                this.statusClass = 'ok';
-                this.statusIcon = 'fas fa-bolt';
-            }).catch((err) => {
-                this.statusText = (err && err.message) ? err.message : this.$t('ai.failed');
-                this.statusClass = 'err';
-                this.statusIcon = 'fas fa-times-circle';
-            }).finally(() => this.testing = false);
+            this.status = null;
+            testKey(this.provider, key).then((r) => {
+                this.status = { kind: 'ok', icon: 'fas fa-bolt', text: this.$t('ai.latency', { ms: r.ms }) };
+            }).catch((e) => {
+                const detail = e && e.detail ? ` (${e.detail})` : '';
+                this.status = { kind: 'err', icon: 'fas fa-times-circle', text: this.$t(errorKey(e)) + detail };
+            }).finally(() => {
+                this.testing = false;
+            });
         }
     }
 };
@@ -97,7 +112,9 @@ export default {
         padding: 12px 14px;
         border-radius: 8px;
         cursor: pointer;
+        font: inherit;
         font-weight: 600;
+        color: inherit;
         background: rgba(255, 255, 255, .05);
         border: 1px solid rgba(255, 255, 255, 0.08);
         transition: all 0.2s ease;
@@ -105,6 +122,11 @@ export default {
         &:hover {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        &:focus-visible {
+            outline: 2px solid #e51f49;
+            outline-offset: 2px;
         }
 
         &.active {
@@ -154,6 +176,17 @@ export default {
     }
 }
 
+.ai-remove {
+    background: none;
+    border: 0;
+    color: #ff8a9c;
+    font-size: .85em;
+    padding: 0;
+    margin-bottom: 14px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 .ai-status {
     display: flex;
     align-items: center;
@@ -170,9 +203,10 @@ export default {
 
 .ai-note {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     font-size: .78em;
     opacity: .6;
+    line-height: 1.4;
 }
 </style>
